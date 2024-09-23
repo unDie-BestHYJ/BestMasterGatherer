@@ -1,8 +1,7 @@
 package com.plugins.besthyj.bestmastergatherer.commands;
 
 import com.plugins.besthyj.bestmastergatherer.BestMasterGatherer;
-import com.plugins.besthyj.bestmastergatherer.gui.StorageGuiManager;
-import com.plugins.besthyj.bestmastergatherer.util.ColorUtil;
+import com.plugins.besthyj.bestmastergatherer.manager.StorageGuiManager;
 import com.plugins.besthyj.bestmastergatherer.util.PlayerMessage;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -35,16 +34,10 @@ public class InventoryCommand implements CommandExecutor {
         if (sender instanceof Player) {
             Player player = (Player) sender;
 
-            if (args.length >= 2 && args[0].equalsIgnoreCase("opengui")) {
+            if (args.length >= 2 && args[0].equalsIgnoreCase("collectgui")) {
                 String guiId = args[1];
-                File guiFile = new File(plugin.getDataFolderPath() + "/gui", guiId + ".yml");
-
-                if (guiFile.exists()) {
-//                    StorageGuiManager.openInventory(player, guiFile);
-                    return true;
-                } else {
-                    PlayerMessage.sendMessage(player, "&c找不到ID为 " + guiId + " 的界面配置文件.");
-                }
+                StorageGuiManager.openGui(player, guiId, 1);
+                return true;
             }
         }
         return false;
@@ -58,7 +51,7 @@ public class InventoryCommand implements CommandExecutor {
     private void showHelpMessage(CommandSender sender) {
         String[] helpMessages = {
                 "&a----- BestInventory 帮助 -----",
-                "&6/bestmastergatherer opengui <guiId> - 打开指定的GUI收集界面",
+                "&6/bestmastergatherer collectgui <guiId> - 打开指定的GUI收集界面",
                 "&6/bestmastergatherer reload - 重新加载插件配置",
                 "&6/bestmastergatherer help - 显示帮助信息",
                 "&a------------------------------"

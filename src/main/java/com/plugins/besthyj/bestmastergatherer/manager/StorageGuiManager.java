@@ -1,4 +1,4 @@
-package com.plugins.besthyj.bestmastergatherer.gui;
+package com.plugins.besthyj.bestmastergatherer.manager;
 
 import com.plugins.besthyj.bestmastergatherer.BestMasterGatherer;
 import com.plugins.besthyj.bestmastergatherer.util.ColorUtil;
@@ -21,7 +21,7 @@ import java.util.Map;
 public class StorageGuiManager {
 
     private static BestMasterGatherer plugin;
-    private static Map<String, FileConfiguration> guiConfigs = new HashMap<>();
+    private final static Map<String, FileConfiguration> guiConfigs = new HashMap<>();
 
     public static void init(BestMasterGatherer pluginInstance) {
         plugin = pluginInstance;
@@ -33,13 +33,16 @@ public class StorageGuiManager {
      * 加载所有 GUI 配置文件
      */
     private static void loadGuiConfigs(String pluginFolderPath) {
-        File guiFolder = new File(pluginFolderPath, "storageGUI");
-        if (guiFolder.exists() && guiFolder.isDirectory()) {
+        File guiFolder = new File(pluginFolderPath, "collectGUI");
+        if (guiFolder.getAbsoluteFile().exists() && guiFolder.getAbsoluteFile().isDirectory()) {
             File[] guiFiles = guiFolder.listFiles((dir, name) -> name.endsWith(".yml"));
             if (guiFiles != null) {
                 for (File guiFile : guiFiles) {
                     FileConfiguration config = YamlConfiguration.loadConfiguration(guiFile);
                     String guiId = guiFile.getName().replace(".yml", "");
+
+                    Bukkit.getLogger().info(guiId);
+
                     guiConfigs.put(guiId, config);
                 }
             }
@@ -56,6 +59,7 @@ public class StorageGuiManager {
     public static void openGui(Player player, String guiId, int page) {
         FileConfiguration config = guiConfigs.get(guiId);
         if (config == null) {
+            Bukkit.getLogger().info(guiConfigs.size() + "");
             PlayerMessage.sendMessage(player, "&c找不到对应的 GUI 配置文件！");
             return;
         }

@@ -1,7 +1,7 @@
 package com.plugins.besthyj.bestmastergatherer.listener;
 
 import com.plugins.besthyj.bestmastergatherer.BestMasterGatherer;
-import com.plugins.besthyj.bestmastergatherer.gui.StorageGuiManager;
+import com.plugins.besthyj.bestmastergatherer.manager.StorageGuiManager;
 import com.plugins.besthyj.bestmastergatherer.util.ColorUtil;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;

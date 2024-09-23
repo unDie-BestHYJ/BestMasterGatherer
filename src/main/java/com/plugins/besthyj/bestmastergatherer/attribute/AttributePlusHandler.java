@@ -1,7 +1,6 @@
 package com.plugins.besthyj.bestmastergatherer.attribute;
 
 import com.plugins.besthyj.bestmastergatherer.constant.CommonConstant;
-import com.plugins.besthyj.bestmastergatherer.util.FileStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -48,21 +47,5 @@ public class AttributePlusHandler {
     private static void removeAttributeSource(Player player) {
         AttributeData attributeData = AttributePlus.attributeManager.getAttributeData(player);
         AttributeAPI.takeSourceAttribute(attributeData, CommonConstant.PLUGIN_NAME);
-    }
-
-    /**
-     * 对外接口
-     * 更新该插件属性源
-     *
-     * @param player
-     */
-    public static void updateAttributeByPlayer(Player player) {
-        removeAttributeSource(player);
-        Map<String, List<ItemStack>> playerItemsMap = FileStorageUtil.loadAllStoredItems();
-        String playerName = player.getName();
-        if (playerItemsMap.containsKey(playerName)) {
-            List<ItemStack> itemStacks = playerItemsMap.get(playerName);
-            addAttributesItemStack(player, itemStacks);
-        }
     }
 }
