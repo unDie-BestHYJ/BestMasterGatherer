@@ -3,11 +3,15 @@ package com.plugins.besthyj.bestmastergatherer.listener;
 import com.plugins.besthyj.bestmastergatherer.BestMasterGatherer;
 import com.plugins.besthyj.bestmastergatherer.manager.CollectGuiManager;
 import com.plugins.besthyj.bestmastergatherer.util.ColorUtil;
+import com.plugins.besthyj.bestmastergatherer.util.PlayerMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
@@ -88,6 +92,28 @@ public class CollectGuiListener implements Listener {
      */
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
+        if (event.getWhoClicked() instanceof Player) {
+            Player player = (Player) event.getWhoClicked();
+
+            // 禁止 Shift + 左键 和 Shift + 右键
+            if (event.getClick() == ClickType.SHIFT_LEFT || event.getClick() == ClickType.SHIFT_RIGHT) {
+                event.setCancelled(true);
+                PlayerMessage.sendMessage(player, "&c禁止通过 Shift + 左键/右键快速移动物品！");
+            }
+
+            // 禁止双击物品（双击的处理取决于物品点击事件）
+            if (event.getClick() == ClickType.DOUBLE_CLICK) {
+                event.setCancelled(true);
+                PlayerMessage.sendMessage(player, "&c禁止通过双击物品快速移动！");
+            }
+
+            // 禁止拖拽物品
+            if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+                event.setCancelled(true);
+                PlayerMessage.sendMessage(player, "&c禁止拖拽物品到其他背包！");
+            }
+        }
+
         InventoryView view = event.getView();
         Inventory clickedInventory = event.getClickedInventory();
         ItemStack clickedItem = event.getCurrentItem();

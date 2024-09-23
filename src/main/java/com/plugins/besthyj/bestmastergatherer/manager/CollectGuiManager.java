@@ -223,7 +223,6 @@ public class CollectGuiManager {
             // 处理“上一页”
             int currentPage = getCurrentPage(event);
             if (currentPage > 1) {
-//                event.getWhoClicked().closeInventory();
                 updateGui((Player) event.getWhoClicked(), guiId, currentPage - 1);
             }
         } else if (clickedItemName.equals(ColorUtil.translateColorCode(guiConfigs.get(guiId).getString("items.N.Display")))) {
@@ -232,7 +231,6 @@ public class CollectGuiManager {
             int totalPages = guiConfigs.get(guiId).getInt("pages");
 
             if (currentPage < totalPages) {
-//                event.getWhoClicked().closeInventory();
                 updateGui((Player) event.getWhoClicked(), guiId, currentPage + 1);
             }
         }
