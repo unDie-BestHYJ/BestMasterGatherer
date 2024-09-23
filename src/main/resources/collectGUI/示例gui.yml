@@ -1,5 +1,5 @@
 # gui名称
-guiName: "&6测试GUi"
+guiName: "&6示例收集gui"
 # 布局
 layout:
   # 每一行代表界面中的一排格子，D 和 `测试1` 等字符代表对应物品的ID
@@ -35,7 +35,7 @@ items:
     Display: "&f上一页"
     Lores:
       - ''
-      - '&8>> &f上一页'
+      - '&8>> &a当前页数: {current_page}'
 
   # N 是下一页的固定ID, 不可被自定义
   # 该图标被点击可到下一页, 如果是最后一页, 该图标消失
@@ -44,4 +44,4 @@ items:
     Display: "&f下一页"
     Lores:
       - ''
-      - '&8>> &f下一页'
+      - '&8>> &a当前页数: {current_page}'

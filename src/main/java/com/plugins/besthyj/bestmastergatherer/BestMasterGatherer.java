@@ -1,8 +1,9 @@
 package com.plugins.besthyj.bestmastergatherer;
 
 import com.plugins.besthyj.bestmastergatherer.commands.InventoryCommand;
-import com.plugins.besthyj.bestmastergatherer.manager.StorageGuiManager;
-import com.plugins.besthyj.bestmastergatherer.listener.StorageGuiListener;
+import com.plugins.besthyj.bestmastergatherer.manager.CollectGuiManager;
+import com.plugins.besthyj.bestmastergatherer.listener.CollectGuiListener;
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -10,6 +11,7 @@ import java.io.File;
 public class BestMasterGatherer extends JavaPlugin {
 
     private File dataFolder;
+    private CollectGuiListener collectGuiListener;
 
     @Override
     public void onEnable() {
@@ -17,42 +19,27 @@ public class BestMasterGatherer extends JavaPlugin {
 
         dataFolder = getDataFolderPath();
 
-//        getLogger().info("数据存储路径: " + dataFolder.getAbsolutePath());
+        CollectGuiManager.init(this);
 
-        File collectGuiFolder = new File(dataFolder, "collectGUI");
-        if (!collectGuiFolder.exists()) {
-            collectGuiFolder.mkdir();
-            File exampleGuiFile = new File(collectGuiFolder, "示例gui.yml");
-            if (!exampleGuiFile.exists()) {
-                saveResource("collectGUI/示例gui.yml", false);
-            }
-        }
+        this.getCommand("BestMasterGatherer").setExecutor(new InventoryCommand(this));
 
-        File attributeGUIFolder = new File(dataFolder, "attributeGUI");
-        if (!attributeGUIFolder.exists()) {
-            attributeGUIFolder.mkdir();
-            File exampleGuiFile = new File(attributeGUIFolder, "示例gui.yml");
-            if (!exampleGuiFile.exists()) {
-                saveResource("attributeGUI/示例gui.yml", false);
-            }
-        }
+        collectGuiListener = new CollectGuiListener(this);
+        getServer().getPluginManager().registerEvents(collectGuiListener, this);
+
+        ensureGuiFilesExist(dataFolder);
 
         File storageFolder = new File(dataFolder, "storage");
         if (!storageFolder.exists()) {
             storageFolder.mkdir();
         }
 
-        StorageGuiManager.init(this);
-
-        this.getCommand("BestMasterGatherer").setExecutor(new InventoryCommand(this));
-
-        getServer().getPluginManager().registerEvents(new StorageGuiListener(this), this);
-
         getLogger().info("BestMasterGatherer 插件已启用！");
     }
 
     @Override
     public void onDisable() {
+        clearResources();
+
         getLogger().info("BestMasterGatherer 插件已禁用！");
     }
 
@@ -75,5 +62,34 @@ public class BestMasterGatherer extends JavaPlugin {
         } else {
             return getDataFolder();
         }
+    }
+
+    public void ensureGuiFilesExist(File dataFolder) {
+        createFolderAndCopyDefault(dataFolder, "collectGUI", "示例gui.yml");
+        createFolderAndCopyDefault(dataFolder, "attributeGUI", "示例gui.yml");
+    }
+
+    private void createFolderAndCopyDefault(File dataFolder, String folderName, String fileName) {
+        File folder = new File(dataFolder, folderName);
+        if (!folder.exists()) {
+            folder.mkdirs(); // 使用 mkdirs 以确保创建所有父文件夹
+        }
+
+        File exampleFile = new File(folder, fileName);
+        if (!exampleFile.exists()) {
+            saveResource(folderName + "/" + fileName, false); // 保存嵌入资源
+        }
+    }
+
+    /**
+     * 清理所有资源
+     */
+    public void clearResources() {
+        CollectGuiManager.clearResources();
+
+        this.getCommand("BestMasterGatherer").setExecutor(null);
+
+        HandlerList.unregisterAll(collectGuiListener);
+        collectGuiListener.clearResources();
     }
 }

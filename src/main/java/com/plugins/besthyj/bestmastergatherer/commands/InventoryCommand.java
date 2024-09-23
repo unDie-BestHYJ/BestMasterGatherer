@@ -1,14 +1,12 @@
 package com.plugins.besthyj.bestmastergatherer.commands;
 
 import com.plugins.besthyj.bestmastergatherer.BestMasterGatherer;
-import com.plugins.besthyj.bestmastergatherer.manager.StorageGuiManager;
+import com.plugins.besthyj.bestmastergatherer.manager.CollectGuiManager;
 import com.plugins.besthyj.bestmastergatherer.util.PlayerMessage;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-
-import java.io.File;
 
 public class InventoryCommand implements CommandExecutor {
 
@@ -36,10 +34,13 @@ public class InventoryCommand implements CommandExecutor {
 
             if (args.length >= 2 && args[0].equalsIgnoreCase("collectgui")) {
                 String guiId = args[1];
-                StorageGuiManager.openGui(player, guiId, 1);
+                CollectGuiManager.openGui(player, guiId, 1);
                 return true;
             }
         }
+
+        showHelpMessage(sender);
+
         return false;
     }
 

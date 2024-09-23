@@ -1,5 +1,5 @@
 # gui名称
-guiName: "&6测试GUi"
+guiName: "&6示例属性GUi"
 # 布局
 layout:
   # 每一行代表界面中的一排格子，D 和 `测试1` 等字符代表对应物品的ID

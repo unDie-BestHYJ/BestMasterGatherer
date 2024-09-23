@@ -1,0 +1,25 @@
+package com.plugins.besthyj.bestmastergatherer.util;
+
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
+
+public class PaginatedInventoryHolder implements InventoryHolder {
+    private int currentPage;
+
+    public PaginatedInventoryHolder(int currentPage) {
+        this.currentPage = currentPage;
+    }
+
+    public void setCurrentPage(int currentPage) {
+        this.currentPage = currentPage;
+    }
+
+    public int getCurrentPage() {
+        return currentPage;
+    }
+
+    @Override
+    public Inventory getInventory() {
+        return null; // 实现 InventoryHolder 必须有这个方法
+    }
+}
