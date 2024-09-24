@@ -76,10 +76,17 @@
 
       <dependency>
           <groupId>com</groupId>
+          <artifactId>spigot</artifactId>
+          <version>1.12.2</version>
+          <scope>system</scope>
+          <systemPath>${project.basedir}/src/lib/spigot-1.12.2.jar</systemPath>
+      </dependency>
+      <dependency>
+          <groupId>com</groupId>
           <artifactId>attributeplus</artifactId>
           <version>3.3.1.1</version>
           <scope>system</scope>
-          <systemPath>${project.basedir}/src/lib/[A]AttributePlus-3.3.1.1.jar</systemPath>
+          <systemPath>${project.basedir}/src/lib/AttributePlus-3.3.1.1.jar</systemPath>
       </dependency>
   </dependencies>
 </project>

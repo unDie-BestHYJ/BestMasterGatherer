@@ -111,6 +111,7 @@ public class CollectGuiManager {
                     String itemType = (String) itemData.get("itemType"); // 物品类型
                     String itemName = (String) itemData.get("itemName"); // 物品显示名称
                     List<String> itemLore = (List<String>) itemData.get("itemLore"); // 物品描述
+                    String nbtData = (String) itemData.get("nbtData");
 
                     // 使用物品类型创建 ItemStack
                     ItemStack loadedItem = new ItemStack(Material.valueOf(itemType), amount);
@@ -119,6 +120,10 @@ public class CollectGuiManager {
                         meta.setDisplayName(itemName); // 设置显示名称
                         meta.setLore(itemLore); // 设置物品描述
                         loadedItem.setItemMeta(meta);
+                    }
+
+                    if (nbtData != null && !nbtData.isEmpty()) {
+                        FileStorageUtil.applyNbtData(loadedItem, nbtData); // 调用应用 NBT 的方法
                     }
 
                     inventory.setItem(slot, loadedItem); // 将读取的物品设置到库存中
@@ -200,6 +205,7 @@ public class CollectGuiManager {
                     String itemType = (String) itemData.get("itemType"); // 物品类型
                     String itemName = (String) itemData.get("itemName"); // 物品显示名称
                     List<String> itemLore = (List<String>) itemData.get("itemLore"); // 物品描述
+                    String nbtData = (String) itemData.get("nbtData");
 
                     // 使用物品类型创建 ItemStack
                     ItemStack loadedItem = new ItemStack(Material.valueOf(itemType), amount);
@@ -208,6 +214,10 @@ public class CollectGuiManager {
                         meta.setDisplayName(itemName); // 设置显示名称
                         meta.setLore(itemLore); // 设置物品描述
                         loadedItem.setItemMeta(meta);
+                    }
+
+                    if (nbtData != null && !nbtData.isEmpty()) {
+                        FileStorageUtil.applyNbtData(loadedItem, nbtData); // 调用应用 NBT 的方法
                     }
 
                     inventory.setItem(slot, loadedItem); // 将读取的物品设置到库存中

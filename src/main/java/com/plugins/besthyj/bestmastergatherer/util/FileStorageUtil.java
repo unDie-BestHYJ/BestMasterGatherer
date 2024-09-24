@@ -8,6 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -50,6 +51,7 @@ public class FileStorageUtil {
         itemData.put("itemType", item.getType().name()); // 物品类型
         itemData.put("itemName", item.getItemMeta().getDisplayName()); // 物品显示名称
         itemData.put("itemLore", item.getItemMeta().getLore());
+        itemData.put("nbtData", getNbtData(item));
 
         // 将物品数据添加到 inventoryData
         Map<Integer, Map<String, Object>> inventoryData = new HashMap<>();
@@ -57,6 +59,31 @@ public class FileStorageUtil {
 
         // 保存物品数据到指定页的 JSON 文件
         FileStorageUtil.saveItemData(player.getName(), page, inventoryData);
+    }
+
+    /**
+     * 获取nbt标签(除了display)
+     *
+     * @param item
+     * @return
+     */
+    private static String getNbtData(ItemStack item) {
+        net.minecraft.server.v1_12_R1.ItemStack nmsItem = CraftItemStack.asNMSCopy(item);
+        net.minecraft.server.v1_12_R1.NBTTagCompound tag = nmsItem.getTag();
+
+        // 创建一个新的 NBTTagCompound 用于保存除了 display 之外的所有 NBT 数据
+        net.minecraft.server.v1_12_R1.NBTTagCompound filteredTag = new net.minecraft.server.v1_12_R1.NBTTagCompound();
+
+        if (tag != null) {
+            // 获取 NBT 数据的所有键
+            for (String key : tag.c()) { // `tag.c()` 获取所有 NBT 键
+                if (!"display".equals(key)) { // 排除 `display` 键
+                    filteredTag.set(key, tag.get(key)); // 将非 `display` 的键值对保存到 filteredTag
+                }
+            }
+        }
+
+        return filteredTag.toString(); // 返回过滤后的 NBT 数据的字符串表示
     }
 
     /**
@@ -111,6 +138,41 @@ public class FileStorageUtil {
         } catch (IOException e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    /**
+     * 应用nbt标签
+     *
+     * @param item
+     * @param nbtData
+     */
+    public static void applyNbtData(ItemStack item, String nbtData) {
+        try {
+            // 获取 NMS 版本的 ItemStack
+            net.minecraft.server.v1_12_R1.ItemStack nmsItem = CraftItemStack.asNMSCopy(item);
+            net.minecraft.server.v1_12_R1.NBTTagCompound tag = nmsItem.getTag() != null ? nmsItem.getTag() : new net.minecraft.server.v1_12_R1.NBTTagCompound();
+
+            // 使用反射访问 MojangsonParser.parse 方法
+            Class<?> mojangsonParserClass = Class.forName("net.minecraft.server.v1_12_R1.MojangsonParser");
+            java.lang.reflect.Method parseMethod = mojangsonParserClass.getDeclaredMethod("parse", String.class);
+            parseMethod.setAccessible(true);  // 确保我们能够访问 private 方法
+
+            // 调用 parse 方法将 NBT 字符串转换为 NBTTagCompound
+            net.minecraft.server.v1_12_R1.NBTTagCompound nbtParsed = (net.minecraft.server.v1_12_R1.NBTTagCompound) parseMethod.invoke(null, nbtData);
+
+            // 合并现有的 NBT 数据
+            tag.a(nbtParsed); // 将新解析的 NBT 数据合并到现有的 NBT 数据中
+
+            // 将 NBT 数据设置回物品
+            nmsItem.setTag(tag);
+
+            // 更新 Bukkit ItemStack
+            item.setItemMeta(CraftItemStack.getItemMeta(nmsItem));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            // 处理可能的异常，例如反射或 NBT 格式错误
         }
     }
 

@@ -63,27 +63,6 @@ public class CollectGuiListener implements Listener {
      */
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-//        if (event.getWhoClicked() instanceof Player) {
-//            Player player = (Player) event.getWhoClicked();
-//
-//            // 禁止 Shift + 左键 和 Shift + 右键
-//            if (event.getClick() == ClickType.SHIFT_LEFT || event.getClick() == ClickType.SHIFT_RIGHT) {
-//                event.setCancelled(true);
-//                PlayerMessage.sendMessage(player, "&c禁止通过 Shift + 左键/右键快速移动物品！");
-//            }
-//
-//            // 禁止双击物品（双击的处理取决于物品点击事件）
-//            if (event.getClick() == ClickType.DOUBLE_CLICK) {
-//                event.setCancelled(true);
-//                PlayerMessage.sendMessage(player, "&c禁止通过双击物品快速移动！");
-//            }
-//
-//            // 禁止拖拽物品
-//            if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
-//                event.setCancelled(true);
-//                PlayerMessage.sendMessage(player, "&c禁止拖拽物品到其他背包！");
-//            }
-//        }
 
         InventoryView view = event.getView();
         Inventory clickedInventory = event.getClickedInventory();
@@ -91,21 +70,11 @@ public class CollectGuiListener implements Listener {
         // 获取带颜色的界面标题
         String inventoryTitle = view.getTitle();
 
-//        Bukkit.getLogger().info(inventoryTitle);
-//
-//        for (String guiName : guiNames.keySet()) {
-//            Bukkit.getLogger().info(guiName);
-//        }
-
         // 检查是否点击的是自定义 GUI
         if (guiNames.containsKey(inventoryTitle)) {
 
-//            Bukkit.getLogger().info("包含 " + inventoryTitle);
-
             if (clickedInventory != null && clickedInventory.equals(view.getTopInventory())) {
                 List<Integer> filledSlots = FileStorageUtil.getFilledSlots(guiNames.get(inventoryTitle));
-
-//                Bukkit.getLogger().info(filledSlots.toString());
 
                 int clickedSlot = event.getSlot();
                 if (filledSlots.contains(clickedSlot)) {
