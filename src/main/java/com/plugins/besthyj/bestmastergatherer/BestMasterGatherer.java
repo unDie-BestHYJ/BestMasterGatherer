@@ -3,6 +3,7 @@ package com.plugins.besthyj.bestmastergatherer;
 import com.plugins.besthyj.bestmastergatherer.commands.InventoryCommand;
 import com.plugins.besthyj.bestmastergatherer.manager.CollectGuiManager;
 import com.plugins.besthyj.bestmastergatherer.listener.CollectGuiListener;
+import com.plugins.besthyj.bestmastergatherer.util.FileStorageUtil;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -19,19 +20,22 @@ public class BestMasterGatherer extends JavaPlugin {
 
         dataFolder = getDataFolderPath();
 
-        CollectGuiManager.init(this);
-
-        this.getCommand("BestMasterGatherer").setExecutor(new InventoryCommand(this));
-
-        collectGuiListener = new CollectGuiListener(this);
-        getServer().getPluginManager().registerEvents(collectGuiListener, this);
-
+        // 文件初始化
         ensureGuiFilesExist(dataFolder);
 
         File storageFolder = new File(dataFolder, "storage");
         if (!storageFolder.exists()) {
             storageFolder.mkdir();
         }
+
+        // 方法、事件初始化
+        CollectGuiManager.init(this);
+        FileStorageUtil.init(this);
+
+        this.getCommand("BestMasterGatherer").setExecutor(new InventoryCommand(this));
+
+        collectGuiListener = new CollectGuiListener(this);
+        getServer().getPluginManager().registerEvents(collectGuiListener, this);
 
         getLogger().info("BestMasterGatherer 插件已启用！");
     }

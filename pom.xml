@@ -69,6 +69,12 @@
       </dependency>
 
       <dependency>
+          <groupId>com.google.code.gson</groupId>
+          <artifactId>gson</artifactId>
+          <version>2.10.1</version> <!-- 使用最新版本 -->
+      </dependency>
+
+      <dependency>
           <groupId>com</groupId>
           <artifactId>attributeplus</artifactId>
           <version>3.3.1.1</version>

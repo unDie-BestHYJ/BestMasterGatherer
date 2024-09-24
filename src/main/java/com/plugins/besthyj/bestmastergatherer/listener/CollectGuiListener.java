@@ -3,6 +3,8 @@ package com.plugins.besthyj.bestmastergatherer.listener;
 import com.plugins.besthyj.bestmastergatherer.BestMasterGatherer;
 import com.plugins.besthyj.bestmastergatherer.manager.CollectGuiManager;
 import com.plugins.besthyj.bestmastergatherer.util.ColorUtil;
+import com.plugins.besthyj.bestmastergatherer.util.FileStorageUtil;
+import com.plugins.besthyj.bestmastergatherer.util.PaginatedInventoryHolder;
 import com.plugins.besthyj.bestmastergatherer.util.PlayerMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -10,10 +12,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.ClickType;
-import org.bukkit.event.inventory.InventoryAction;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.*;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
@@ -58,84 +57,55 @@ public class CollectGuiListener implements Listener {
     }
 
     /**
-     * 获取已填充的槽位信息
-     *
-     * @param guiId GUI 的 ID
-     * @return 已填充的槽位列表
-     */
-    private List<Integer> getFilledSlots(String guiId) {
-        List<Integer> filledSlots = new ArrayList<>();
-        File guiFile = new File(plugin.getDataFolderPath(), "collectGUI/" + guiId + ".yml");
-
-        if (guiFile.exists()) {
-            FileConfiguration config = YamlConfiguration.loadConfiguration(guiFile);
-            List<String> layout = config.getStringList("layout");
-
-            // 解析布局，填充槽位
-            for (int row = 0; row < layout.size(); row++) {
-                String line = layout.get(row);
-                for (int col = 0; col < line.length(); col++) {
-                    char itemChar = line.charAt(col);
-                    if (itemChar != ' ') { // 非空格字符表示有物品
-                        filledSlots.add(row * 9 + col); // 计算槽位索引
-                    }
-                }
-            }
-        }
-        return filledSlots;
-    }
-
-    /**
      * 处理点击事件
      *
      * @param event 点击事件
      */
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (event.getWhoClicked() instanceof Player) {
-            Player player = (Player) event.getWhoClicked();
-
-            // 禁止 Shift + 左键 和 Shift + 右键
-            if (event.getClick() == ClickType.SHIFT_LEFT || event.getClick() == ClickType.SHIFT_RIGHT) {
-                event.setCancelled(true);
-                PlayerMessage.sendMessage(player, "&c禁止通过 Shift + 左键/右键快速移动物品！");
-            }
-
-            // 禁止双击物品（双击的处理取决于物品点击事件）
-            if (event.getClick() == ClickType.DOUBLE_CLICK) {
-                event.setCancelled(true);
-                PlayerMessage.sendMessage(player, "&c禁止通过双击物品快速移动！");
-            }
-
-            // 禁止拖拽物品
-            if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
-                event.setCancelled(true);
-                PlayerMessage.sendMessage(player, "&c禁止拖拽物品到其他背包！");
-            }
-        }
+//        if (event.getWhoClicked() instanceof Player) {
+//            Player player = (Player) event.getWhoClicked();
+//
+//            // 禁止 Shift + 左键 和 Shift + 右键
+//            if (event.getClick() == ClickType.SHIFT_LEFT || event.getClick() == ClickType.SHIFT_RIGHT) {
+//                event.setCancelled(true);
+//                PlayerMessage.sendMessage(player, "&c禁止通过 Shift + 左键/右键快速移动物品！");
+//            }
+//
+//            // 禁止双击物品（双击的处理取决于物品点击事件）
+//            if (event.getClick() == ClickType.DOUBLE_CLICK) {
+//                event.setCancelled(true);
+//                PlayerMessage.sendMessage(player, "&c禁止通过双击物品快速移动！");
+//            }
+//
+//            // 禁止拖拽物品
+//            if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+//                event.setCancelled(true);
+//                PlayerMessage.sendMessage(player, "&c禁止拖拽物品到其他背包！");
+//            }
+//        }
 
         InventoryView view = event.getView();
         Inventory clickedInventory = event.getClickedInventory();
-        ItemStack clickedItem = event.getCurrentItem();
 
         // 获取带颜色的界面标题
         String inventoryTitle = view.getTitle();
 
-        Bukkit.getLogger().info(inventoryTitle);
-
-        for (String guiName : guiNames.keySet()) {
-            Bukkit.getLogger().info(guiName);
-        }
+//        Bukkit.getLogger().info(inventoryTitle);
+//
+//        for (String guiName : guiNames.keySet()) {
+//            Bukkit.getLogger().info(guiName);
+//        }
 
         // 检查是否点击的是自定义 GUI
         if (guiNames.containsKey(inventoryTitle)) {
 
-            Bukkit.getLogger().info("包含 " + inventoryTitle);
+//            Bukkit.getLogger().info("包含 " + inventoryTitle);
 
             if (clickedInventory != null && clickedInventory.equals(view.getTopInventory())) {
-                List<Integer> filledSlots = getFilledSlots(guiNames.get(inventoryTitle));
+                List<Integer> filledSlots = FileStorageUtil.getFilledSlots(guiNames.get(inventoryTitle));
 
-                Bukkit.getLogger().info(filledSlots.toString());
+//                Bukkit.getLogger().info(filledSlots.toString());
 
                 int clickedSlot = event.getSlot();
                 if (filledSlots.contains(clickedSlot)) {
@@ -145,6 +115,40 @@ public class CollectGuiListener implements Listener {
                 }
                 CollectGuiManager.handleInventoryClick(event); // 处理 GUI 内部点击逻辑
             }
+        }
+    }
+
+    /**
+     * 处理界面关闭事件，统一保存所有物品数据
+     *
+     * @param event 界面关闭事件
+     */
+    @EventHandler
+    public void onInventoryClose(InventoryCloseEvent event) {
+        if (event.getInventory().getHolder() instanceof PaginatedInventoryHolder) {
+            Player player = (Player) event.getPlayer();
+            Inventory closedInventory = event.getInventory();
+            InventoryView view = event.getView();
+            String inventoryTitle = view.getTitle();
+            String guiId = guiNames.get(inventoryTitle);
+
+            int page = ((PaginatedInventoryHolder) closedInventory.getHolder()).getCurrentPage();
+
+            Bukkit.getLogger().info("当前删除页数 " + page);
+            FileStorageUtil.deleteItemData(player.getName(), page);
+
+            for (int slot = 0; slot < closedInventory.getSize(); slot++) {
+                if (FileStorageUtil.getFilledSlots(guiId).contains(slot)) {continue;}
+                ItemStack item = closedInventory.getItem(slot);
+                if (item != null) {
+                    Bukkit.getLogger().info(slot + "");
+                    Bukkit.getLogger().info(item.getItemMeta().getDisplayName());
+
+                    FileStorageUtil.saveItemData(player, item, page, slot);
+                }
+            }
+
+            PlayerMessage.sendMessage(player, "&a你的仓库物品已保存！");
         }
     }
 

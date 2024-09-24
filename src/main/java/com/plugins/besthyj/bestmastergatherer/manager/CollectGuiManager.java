@@ -4,6 +4,7 @@ import com.plugins.besthyj.bestmastergatherer.BestMasterGatherer;
 import com.plugins.besthyj.bestmastergatherer.constant.VariableConstant;
 import com.plugins.besthyj.bestmastergatherer.listener.CollectGuiListener;
 import com.plugins.besthyj.bestmastergatherer.util.ColorUtil;
+import com.plugins.besthyj.bestmastergatherer.util.FileStorageUtil;
 import com.plugins.besthyj.bestmastergatherer.util.PaginatedInventoryHolder;
 import com.plugins.besthyj.bestmastergatherer.util.PlayerMessage;
 import org.bukkit.Bukkit;
@@ -69,13 +70,15 @@ public class CollectGuiManager {
         String guiName = ColorUtil.translateColorCode(config.getString("guiName"));
         List<String> layout = config.getStringList("layout");
 
-        int totlePage = config.getInt("pages");
-        if (page > totlePage || page < 1) {
+        int totalPage = config.getInt("pages");
+        if (page > totalPage || page < 1) {
             PlayerMessage.sendMessage(player, "&c该页不存在！");
             return;
         }
 
         Inventory inventory = Bukkit.createInventory(new PaginatedInventoryHolder(page), 9 * 6, guiName);
+
+        Map<String, Map<String, Object>> inventoryData = FileStorageUtil.readItemData(player.getName(), page);
 
         Map<String, ItemStack> itemStackMap = new HashMap<>();
         ItemStack defaultItem = itemStackMap.computeIfAbsent("D", id -> createGuiItem(config, "D", page));
@@ -86,16 +89,39 @@ public class CollectGuiManager {
                 char itemChar = line.charAt(col);
                 String itemId = String.valueOf(itemChar);
 
+                int slot = row * 9 + col;
+
                 if (config.contains("items." + itemId)) {
                     ItemStack item = itemStackMap.computeIfAbsent(itemId, id -> createGuiItem(config, id, page));
 
                     if ("L".equals(itemId) && page == 1) {
-                        inventory.setItem(row * 9 + col, defaultItem);
-                    } else if ("N".equals(itemId) && page == totlePage) {
-                        inventory.setItem(row * 9 + col, defaultItem);
+                        inventory.setItem(slot, defaultItem);
+                    } else if ("N".equals(itemId) && page == totalPage) {
+                        inventory.setItem(slot, defaultItem);
                     } else {
-                        inventory.setItem(row * 9 + col, item);
+                        inventory.setItem(slot, item);
                     }
+                }
+
+                if (inventoryData != null && inventoryData.containsKey(String.valueOf(slot))) {
+                    Map<String, Object> itemData = inventoryData.get(String.valueOf(slot));
+
+                    // 将物品数量从 Double 转换为 int
+                    int amount = ((Double) itemData.get("amount")).intValue();
+                    String itemType = (String) itemData.get("itemType"); // 物品类型
+                    String itemName = (String) itemData.get("itemName"); // 物品显示名称
+                    List<String> itemLore = (List<String>) itemData.get("itemLore"); // 物品描述
+
+                    // 使用物品类型创建 ItemStack
+                    ItemStack loadedItem = new ItemStack(Material.valueOf(itemType), amount);
+                    ItemMeta meta = loadedItem.getItemMeta();
+                    if (meta != null) {
+                        meta.setDisplayName(itemName); // 设置显示名称
+                        meta.setLore(itemLore); // 设置物品描述
+                        loadedItem.setItemMeta(meta);
+                    }
+
+                    inventory.setItem(slot, loadedItem); // 将读取的物品设置到库存中
                 }
             }
         }
@@ -118,8 +144,8 @@ public class CollectGuiManager {
         }
 
         List<String> layout = config.getStringList("layout");
-        int totlePage = config.getInt("pages");
-        if (page > totlePage || page < 1) {
+        int totalPage = config.getInt("pages");
+        if (page > totalPage || page < 1) {
             PlayerMessage.sendMessage(player, "&c该页不存在！");
             return;
         }
@@ -127,7 +153,7 @@ public class CollectGuiManager {
         Inventory inventory = player.getOpenInventory().getTopInventory();  // 获取当前打开的 GUI
 
         // 如果当前不是 PaginatedInventoryHolder 的界面，直接返回
-        if (!(player.getOpenInventory().getTopInventory().getHolder() instanceof PaginatedInventoryHolder)) {
+        if (!(inventory.getHolder() instanceof PaginatedInventoryHolder)) {
             PlayerMessage.sendMessage(player, "&c当前界面无法更新！");
             return;
         }
@@ -143,22 +169,48 @@ public class CollectGuiManager {
         inventory.clear();
 
         // 更新布局中的物品
+        Map<String, Map<String, Object>> inventoryData = FileStorageUtil.readItemData(player.getName(), page); // 从存储中读取当前页的数据
+
         for (int row = 0; row < layout.size(); row++) {
             String line = layout.get(row);
             for (int col = 0; col < line.length(); col++) {
                 char itemChar = line.charAt(col);
                 String itemId = String.valueOf(itemChar);
+                int slot = row * 9 + col; // 计算当前槽位
 
+                // 根据配置文件创建物品
                 if (config.contains("items." + itemId)) {
                     ItemStack item = itemStackMap.computeIfAbsent(itemId, id -> createGuiItem(config, id, page));
 
                     if ("L".equals(itemId) && page == 1) {
-                        inventory.setItem(row * 9 + col, defaultItem);
-                    } else if ("N".equals(itemId) && page == totlePage) {
-                        inventory.setItem(row * 9 + col, defaultItem);
+                        inventory.setItem(slot, defaultItem);
+                    } else if ("N".equals(itemId) && page == totalPage) {
+                        inventory.setItem(slot, defaultItem);
                     } else {
-                        inventory.setItem(row * 9 + col, item);
+                        inventory.setItem(slot, item);
                     }
+                }
+
+                // 更新当前槽位的物品
+                if (inventoryData != null && inventoryData.containsKey(String.valueOf(slot))) {
+                    Map<String, Object> itemData = inventoryData.get(String.valueOf(slot));
+
+                    // 将物品数量从 Double 转换为 int
+                    int amount = ((Double) itemData.get("amount")).intValue();
+                    String itemType = (String) itemData.get("itemType"); // 物品类型
+                    String itemName = (String) itemData.get("itemName"); // 物品显示名称
+                    List<String> itemLore = (List<String>) itemData.get("itemLore"); // 物品描述
+
+                    // 使用物品类型创建 ItemStack
+                    ItemStack loadedItem = new ItemStack(Material.valueOf(itemType), amount);
+                    ItemMeta meta = loadedItem.getItemMeta();
+                    if (meta != null) {
+                        meta.setDisplayName(itemName); // 设置显示名称
+                        meta.setLore(itemLore); // 设置物品描述
+                        loadedItem.setItemMeta(meta);
+                    }
+
+                    inventory.setItem(slot, loadedItem); // 将读取的物品设置到库存中
                 }
             }
         }
@@ -218,11 +270,14 @@ public class CollectGuiManager {
             return; // 如果没有找到 GUI ID，则退出
         }
 
+        Player player = (Player) event.getWhoClicked();
+
         // 检查是否点击了“上一页”或“下一页”
         if (clickedItemName.equals(ColorUtil.translateColorCode(guiConfigs.get(guiId).getString("items.L.Display")))) {
             // 处理“上一页”
             int currentPage = getCurrentPage(event);
             if (currentPage > 1) {
+                saveCurrentPageData(player, guiId, currentPage);
                 updateGui((Player) event.getWhoClicked(), guiId, currentPage - 1);
             }
         } else if (clickedItemName.equals(ColorUtil.translateColorCode(guiConfigs.get(guiId).getString("items.N.Display")))) {
@@ -231,7 +286,31 @@ public class CollectGuiManager {
             int totalPages = guiConfigs.get(guiId).getInt("pages");
 
             if (currentPage < totalPages) {
+                saveCurrentPageData(player, guiId, currentPage);
                 updateGui((Player) event.getWhoClicked(), guiId, currentPage + 1);
+            }
+        }
+    }
+
+    private static void saveCurrentPageData(Player player, String guiId, int currentPage) {
+        FileConfiguration config = guiConfigs.get(guiId);
+        if (config == null) {
+            Bukkit.getLogger().info(guiConfigs.size() + "");
+            PlayerMessage.sendMessage(player, "&c找不到对应的 GUI 配置文件！");
+            return;
+        }
+
+        Inventory inventory = player.getOpenInventory().getTopInventory();
+
+        // 遍历当前打开的库存，保存每个槽位的数据
+        for (int slot = 0; slot < inventory.getSize(); slot++) {
+            if (FileStorageUtil.getFilledSlots(guiId).contains(slot)) {
+                continue;
+            }
+
+            ItemStack item = inventory.getItem(slot);
+            if (item != null) {
+                FileStorageUtil.saveItemData(player, item, currentPage, slot);
             }
         }
     }
