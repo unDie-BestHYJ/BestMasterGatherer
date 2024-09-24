@@ -3,10 +3,9 @@ package com.plugins.besthyj.bestmastergatherer.listener;
 import com.plugins.besthyj.bestmastergatherer.BestMasterGatherer;
 import com.plugins.besthyj.bestmastergatherer.manager.CollectGuiManager;
 import com.plugins.besthyj.bestmastergatherer.util.ColorUtil;
-import com.plugins.besthyj.bestmastergatherer.util.FileStorageUtil;
+import com.plugins.besthyj.bestmastergatherer.util.PlayerDataStorageUtil;
 import com.plugins.besthyj.bestmastergatherer.util.PaginatedInventoryHolder;
 import com.plugins.besthyj.bestmastergatherer.util.PlayerMessage;
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -18,7 +17,6 @@ import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -74,7 +72,7 @@ public class CollectGuiListener implements Listener {
         if (guiNames.containsKey(inventoryTitle)) {
 
             if (clickedInventory != null && clickedInventory.equals(view.getTopInventory())) {
-                List<Integer> filledSlots = FileStorageUtil.getFilledSlots(guiNames.get(inventoryTitle));
+                List<Integer> filledSlots = PlayerDataStorageUtil.getFilledSlots(guiNames.get(inventoryTitle), "collectGUI");
 
                 int clickedSlot = event.getSlot();
                 if (filledSlots.contains(clickedSlot)) {
@@ -103,17 +101,15 @@ public class CollectGuiListener implements Listener {
 
             int page = ((PaginatedInventoryHolder) closedInventory.getHolder()).getCurrentPage();
 
-            Bukkit.getLogger().info("当前删除页数 " + page);
-            FileStorageUtil.deleteItemData(player.getName(), page);
+            // 删除旧文件
+            PlayerDataStorageUtil.deleteItemData(player.getName(), page);
 
             for (int slot = 0; slot < closedInventory.getSize(); slot++) {
-                if (FileStorageUtil.getFilledSlots(guiId).contains(slot)) {continue;}
+                if (PlayerDataStorageUtil.getFilledSlots(guiId, "collectGUI").contains(slot)) {continue;}
                 ItemStack item = closedInventory.getItem(slot);
                 if (item != null) {
-                    Bukkit.getLogger().info(slot + "");
-                    Bukkit.getLogger().info(item.getItemMeta().getDisplayName());
 
-                    FileStorageUtil.saveItemData(player, item, page, slot);
+                    PlayerDataStorageUtil.saveItemData(player, item, page, slot);
                 }
             }
 

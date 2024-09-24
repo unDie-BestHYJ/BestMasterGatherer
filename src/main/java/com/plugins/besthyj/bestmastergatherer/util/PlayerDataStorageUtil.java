@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class FileStorageUtil {
+public class PlayerDataStorageUtil {
 
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private static BestMasterGatherer plugin;
@@ -58,7 +58,7 @@ public class FileStorageUtil {
         inventoryData.put(slotId, itemData); // 使用传入的槽位ID
 
         // 保存物品数据到指定页的 JSON 文件
-        FileStorageUtil.saveItemData(player.getName(), page, inventoryData);
+        PlayerDataStorageUtil.saveItemData(player.getName(), page, inventoryData);
     }
 
     /**
@@ -117,62 +117,6 @@ public class FileStorageUtil {
             gson.toJson(inventoryData, writer); // 使用 Gson 将合并后的物品数据序列化为 JSON 并写入文件
         } catch (IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    /**
-     * 从指定玩家的指定页数JSON文件中读取物品数据
-     *
-     * @param playerName 玩家名
-     * @param page 页数
-     * @return 返回一个Map，key为槽位ID，value为物品的详细信息
-     */
-    public static Map<String, Map<String, Object>> readItemData(String playerName, int page) {
-        File file = new File(plugin.getDataFolderPath() + "/storage" + File.separator + playerName, "page_" + page + ".json");
-        if (!file.exists()) {
-            return null;
-        }
-
-        try (FileReader reader = new FileReader(file)) {
-            return gson.fromJson(reader, HashMap.class); // 使用 Gson 反序列化为 Map
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    /**
-     * 应用nbt标签
-     *
-     * @param item
-     * @param nbtData
-     */
-    public static void applyNbtData(ItemStack item, String nbtData) {
-        try {
-            // 获取 NMS 版本的 ItemStack
-            net.minecraft.server.v1_12_R1.ItemStack nmsItem = CraftItemStack.asNMSCopy(item);
-            net.minecraft.server.v1_12_R1.NBTTagCompound tag = nmsItem.getTag() != null ? nmsItem.getTag() : new net.minecraft.server.v1_12_R1.NBTTagCompound();
-
-            // 使用反射访问 MojangsonParser.parse 方法
-            Class<?> mojangsonParserClass = Class.forName("net.minecraft.server.v1_12_R1.MojangsonParser");
-            java.lang.reflect.Method parseMethod = mojangsonParserClass.getDeclaredMethod("parse", String.class);
-            parseMethod.setAccessible(true);  // 确保我们能够访问 private 方法
-
-            // 调用 parse 方法将 NBT 字符串转换为 NBTTagCompound
-            net.minecraft.server.v1_12_R1.NBTTagCompound nbtParsed = (net.minecraft.server.v1_12_R1.NBTTagCompound) parseMethod.invoke(null, nbtData);
-
-            // 合并现有的 NBT 数据
-            tag.a(nbtParsed); // 将新解析的 NBT 数据合并到现有的 NBT 数据中
-
-            // 将 NBT 数据设置回物品
-            nmsItem.setTag(tag);
-
-            // 更新 Bukkit ItemStack
-            item.setItemMeta(CraftItemStack.getItemMeta(nmsItem));
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            // 处理可能的异常，例如反射或 NBT 格式错误
         }
     }
 
@@ -241,9 +185,9 @@ public class FileStorageUtil {
      * @param guiId GUI 的 ID
      * @return 已填充的槽位列表
      */
-    public static List<Integer> getFilledSlots(String guiId) {
+    public static List<Integer> getFilledSlots(String guiId, String guiFolder) {
         List<Integer> filledSlots = new ArrayList<>();
-        File guiFile = new File(plugin.getDataFolderPath(), "collectGUI/" + guiId + ".yml");
+        File guiFile = new File(plugin.getDataFolderPath(), guiFolder + "/" + guiId + ".yml");
 
         if (guiFile.exists()) {
             FileConfiguration config = YamlConfiguration.loadConfiguration(guiFile);

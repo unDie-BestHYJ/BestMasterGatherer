@@ -1,9 +1,12 @@
 package com.plugins.besthyj.bestmastergatherer;
 
-import com.plugins.besthyj.bestmastergatherer.commands.InventoryCommand;
+import com.plugins.besthyj.bestmastergatherer.commands.BestMasterGathererCommand;
+import com.plugins.besthyj.bestmastergatherer.listener.AttributeGuiListener;
+import com.plugins.besthyj.bestmastergatherer.manager.AttributeGuiManager;
 import com.plugins.besthyj.bestmastergatherer.manager.CollectGuiManager;
 import com.plugins.besthyj.bestmastergatherer.listener.CollectGuiListener;
-import com.plugins.besthyj.bestmastergatherer.util.FileStorageUtil;
+import com.plugins.besthyj.bestmastergatherer.util.FileGetUtil;
+import com.plugins.besthyj.bestmastergatherer.util.PlayerDataStorageUtil;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -13,6 +16,7 @@ public class BestMasterGatherer extends JavaPlugin {
 
     private File dataFolder;
     private CollectGuiListener collectGuiListener;
+    private AttributeGuiListener attributeGuiListener;
 
     @Override
     public void onEnable() {
@@ -30,12 +34,17 @@ public class BestMasterGatherer extends JavaPlugin {
 
         // 方法、事件初始化
         CollectGuiManager.init(this);
-        FileStorageUtil.init(this);
+        AttributeGuiManager.init(this);
 
-        this.getCommand("BestMasterGatherer").setExecutor(new InventoryCommand(this));
+        PlayerDataStorageUtil.init(this);
+        FileGetUtil.init(this);
+
+        this.getCommand("BestMasterGatherer").setExecutor(new BestMasterGathererCommand(this));
 
         collectGuiListener = new CollectGuiListener(this);
         getServer().getPluginManager().registerEvents(collectGuiListener, this);
+        attributeGuiListener = new AttributeGuiListener(this);
+        getServer().getPluginManager().registerEvents(attributeGuiListener, this);
 
         getLogger().info("BestMasterGatherer 插件已启用！");
     }
@@ -68,6 +77,11 @@ public class BestMasterGatherer extends JavaPlugin {
         }
     }
 
+    /**
+     * 初始化文件
+     *
+     * @param dataFolder
+     */
     public void ensureGuiFilesExist(File dataFolder) {
         createFolderAndCopyDefault(dataFolder, "collectGUI", "示例gui.yml");
         createFolderAndCopyDefault(dataFolder, "attributeGUI", "示例gui.yml");

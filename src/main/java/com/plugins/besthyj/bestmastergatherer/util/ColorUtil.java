@@ -7,6 +7,9 @@ import org.bukkit.ChatColor;
  */
 public class ColorUtil {
     public static String translateColorCode(String text) {
+        if (text == null || text.isEmpty()) {
+            return text;
+        }
         return ChatColor.translateAlternateColorCodes('&', text);
     }
 }

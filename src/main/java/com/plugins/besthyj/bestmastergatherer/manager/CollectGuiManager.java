@@ -3,10 +3,7 @@ package com.plugins.besthyj.bestmastergatherer.manager;
 import com.plugins.besthyj.bestmastergatherer.BestMasterGatherer;
 import com.plugins.besthyj.bestmastergatherer.constant.VariableConstant;
 import com.plugins.besthyj.bestmastergatherer.listener.CollectGuiListener;
-import com.plugins.besthyj.bestmastergatherer.util.ColorUtil;
-import com.plugins.besthyj.bestmastergatherer.util.FileStorageUtil;
-import com.plugins.besthyj.bestmastergatherer.util.PaginatedInventoryHolder;
-import com.plugins.besthyj.bestmastergatherer.util.PlayerMessage;
+import com.plugins.besthyj.bestmastergatherer.util.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -62,7 +59,7 @@ public class CollectGuiManager {
     public static void openGui(Player player, String guiId, int page) {
         FileConfiguration config = guiConfigs.get(guiId);
         if (config == null) {
-            Bukkit.getLogger().info(guiConfigs.size() + "");
+//            Bukkit.getLogger().info(guiConfigs.size() + "");
             PlayerMessage.sendMessage(player, "&c找不到对应的 GUI 配置文件！");
             return;
         }
@@ -78,7 +75,7 @@ public class CollectGuiManager {
 
         Inventory inventory = Bukkit.createInventory(new PaginatedInventoryHolder(page), 9 * 6, guiName);
 
-        Map<String, Map<String, Object>> inventoryData = FileStorageUtil.readItemData(player.getName(), page);
+        Map<String, Map<String, Object>> inventoryData = FileGetUtil.readItemData(player.getName(), page);
 
         Map<String, ItemStack> itemStackMap = new HashMap<>();
         ItemStack defaultItem = itemStackMap.computeIfAbsent("D", id -> createGuiItem(config, "D", page));
@@ -123,7 +120,7 @@ public class CollectGuiManager {
                     }
 
                     if (nbtData != null && !nbtData.isEmpty()) {
-                        FileStorageUtil.applyNbtData(loadedItem, nbtData); // 调用应用 NBT 的方法
+                        FileGetUtil.applyNbtData(loadedItem, nbtData); // 调用应用 NBT 的方法
                     }
 
                     inventory.setItem(slot, loadedItem); // 将读取的物品设置到库存中
@@ -174,7 +171,7 @@ public class CollectGuiManager {
         inventory.clear();
 
         // 更新布局中的物品
-        Map<String, Map<String, Object>> inventoryData = FileStorageUtil.readItemData(player.getName(), page); // 从存储中读取当前页的数据
+        Map<String, Map<String, Object>> inventoryData = FileGetUtil.readItemData(player.getName(), page); // 从存储中读取当前页的数据
 
         for (int row = 0; row < layout.size(); row++) {
             String line = layout.get(row);
@@ -217,7 +214,7 @@ public class CollectGuiManager {
                     }
 
                     if (nbtData != null && !nbtData.isEmpty()) {
-                        FileStorageUtil.applyNbtData(loadedItem, nbtData); // 调用应用 NBT 的方法
+                        FileGetUtil.applyNbtData(loadedItem, nbtData); // 调用应用 NBT 的方法
                     }
 
                     inventory.setItem(slot, loadedItem); // 将读取的物品设置到库存中
@@ -303,9 +300,12 @@ public class CollectGuiManager {
     }
 
     private static void saveCurrentPageData(Player player, String guiId, int currentPage) {
+        // 删除旧文件
+        PlayerDataStorageUtil.deleteItemData(player.getName(), currentPage);
+
         FileConfiguration config = guiConfigs.get(guiId);
         if (config == null) {
-            Bukkit.getLogger().info(guiConfigs.size() + "");
+//            Bukkit.getLogger().info(guiConfigs.size() + "");
             PlayerMessage.sendMessage(player, "&c找不到对应的 GUI 配置文件！");
             return;
         }
@@ -314,13 +314,13 @@ public class CollectGuiManager {
 
         // 遍历当前打开的库存，保存每个槽位的数据
         for (int slot = 0; slot < inventory.getSize(); slot++) {
-            if (FileStorageUtil.getFilledSlots(guiId).contains(slot)) {
+            if (PlayerDataStorageUtil.getFilledSlots(guiId, "collectGUI").contains(slot)) {
                 continue;
             }
 
             ItemStack item = inventory.getItem(slot);
             if (item != null) {
-                FileStorageUtil.saveItemData(player, item, currentPage, slot);
+                PlayerDataStorageUtil.saveItemData(player, item, currentPage, slot);
             }
         }
     }
