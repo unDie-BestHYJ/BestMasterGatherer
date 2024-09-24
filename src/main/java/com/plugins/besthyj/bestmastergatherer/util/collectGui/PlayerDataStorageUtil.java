@@ -3,8 +3,10 @@ package com.plugins.besthyj.bestmastergatherer.util.collectGui;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.plugins.besthyj.bestinventory.api.InventoryItemAPI;
 import com.plugins.besthyj.bestmastergatherer.BestMasterGatherer;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftItemStack;
@@ -192,7 +194,34 @@ public class PlayerDataStorageUtil {
             }
         }
 
-        return itemsMap; // 返回物品名称和数量的映射
+        // 将背包里的物品添加到itemsMap中
+        Player player = Bukkit.getPlayer(playerName);
+        if (player != null) {
+            for (ItemStack item : player.getInventory().getContents()) {
+                if (item != null && item.getType() != Material.AIR) { // 确保物品不为空
+                    String itemName = item.getItemMeta().getDisplayName(); // 获取物品类型名称
+                    int itemCount = item.getAmount(); // 获取物品数量
+
+                    itemsMap.merge(itemName, itemCount, Integer::sum); // 累加相同物品的数量
+                }
+            }
+        }
+
+        // 将饰品背包里的物品添加到itemsMap中
+        Map<String, Integer> inventoryItemMap = InventoryItemAPI.getItemsMap(playerName);
+
+        for (Map.Entry<String, Integer> entry : inventoryItemMap.entrySet()) {
+            String itemName = entry.getKey();
+            int itemCount = entry.getValue();
+
+            if (itemsMap.containsKey(itemName)) {
+                itemsMap.put(itemName, itemsMap.get(itemName) + itemCount);
+            } else {
+                itemsMap.put(itemName, itemCount);
+            }
+        }
+
+        return itemsMap;
     }
 
     /**

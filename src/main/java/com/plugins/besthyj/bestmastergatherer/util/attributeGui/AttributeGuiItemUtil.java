@@ -212,8 +212,7 @@ public class AttributeGuiItemUtil {
      * @return
      */
     public static Integer getCollectedCount(Player player, AttributeGuiItem attributeGuiItem) {
-        Set<String> displaySet = new HashSet<>();
-        displaySet = getDisplaySet(attributeGuiItem);
+        Set<String> displaySet = getDisplaySet(attributeGuiItem);
 
         Map<String, Integer> stringIntegerMap = PlayerDataStorageUtil.readItems(player.getName());
 
