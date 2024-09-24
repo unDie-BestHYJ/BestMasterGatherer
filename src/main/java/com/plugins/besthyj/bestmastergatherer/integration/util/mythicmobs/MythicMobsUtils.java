@@ -1,4 +1,4 @@
-package com.plugins.besthyj.bestmastergatherer.util;
+package com.plugins.besthyj.bestmastergatherer.integration.util.mythicmobs;
 
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.items.MythicItem;
@@ -31,6 +31,34 @@ public class MythicMobsUtils {
         if (mythicItemOptional.isPresent()) {
             MythicItem mythicItem = mythicItemOptional.get();
             return BukkitAdapter.adapt(mythicItem.generateItemStack(1));
+        } else {
+            throw new IllegalArgumentException("未找到指定的 MythicItem: " + itemId);
+        }
+    }
+
+    /**
+     * 根据物品id查找物品名
+     *
+     * @param itemId
+     * @return
+     */
+    public static String getMythicItemDisplayName(String itemId) {
+        MythicMobs mythicMobs = (MythicMobs) Bukkit.getServer().getPluginManager().getPlugin("MythicMobs");
+
+        if (mythicMobs == null) {
+            throw new IllegalStateException("MythicMobs 插件未找到");
+        }
+
+        Optional<MythicItem> mythicItemOptional = mythicMobs.getItemManager().getItem(itemId);
+
+        if (mythicItemOptional.isPresent()) {
+            MythicItem mythicItem = mythicItemOptional.get();
+            ItemStack itemStack = BukkitAdapter.adapt(mythicItem.generateItemStack(1));
+            String displayName = itemStack.getItemMeta().getDisplayName();
+
+//            Bukkit.getLogger().info(displayName);
+
+            return displayName; // 获取物品的显示名称
         } else {
             throw new IllegalArgumentException("未找到指定的 MythicItem: " + itemId);
         }

@@ -1,9 +1,11 @@
-package com.plugins.besthyj.bestmastergatherer.manager;
+package com.plugins.besthyj.bestmastergatherer.manager.collectGui;
 
 import com.plugins.besthyj.bestmastergatherer.BestMasterGatherer;
 import com.plugins.besthyj.bestmastergatherer.constant.VariableConstant;
-import com.plugins.besthyj.bestmastergatherer.listener.CollectGuiListener;
+import com.plugins.besthyj.bestmastergatherer.listener.collectGui.CollectGuiListener;
+import com.plugins.besthyj.bestmastergatherer.model.collectGui.PaginatedInventoryHolder;
 import com.plugins.besthyj.bestmastergatherer.util.*;
+import com.plugins.besthyj.bestmastergatherer.util.collectGui.PlayerDataStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -75,7 +77,7 @@ public class CollectGuiManager {
 
         Inventory inventory = Bukkit.createInventory(new PaginatedInventoryHolder(page), 9 * 6, guiName);
 
-        Map<String, Map<String, Object>> inventoryData = FileGetUtil.readItemData(player.getName(), page);
+        Map<String, Map<String, Object>> inventoryData = PlayerDataStorageUtil.readItemData(player.getName(), page);
 
         Map<String, ItemStack> itemStackMap = new HashMap<>();
         ItemStack defaultItem = itemStackMap.computeIfAbsent("D", id -> createGuiItem(config, "D", page));
@@ -120,7 +122,7 @@ public class CollectGuiManager {
                     }
 
                     if (nbtData != null && !nbtData.isEmpty()) {
-                        FileGetUtil.applyNbtData(loadedItem, nbtData); // 调用应用 NBT 的方法
+                        PlayerDataStorageUtil.applyNbtData(loadedItem, nbtData); // 调用应用 NBT 的方法
                     }
 
                     inventory.setItem(slot, loadedItem); // 将读取的物品设置到库存中
@@ -171,7 +173,7 @@ public class CollectGuiManager {
         inventory.clear();
 
         // 更新布局中的物品
-        Map<String, Map<String, Object>> inventoryData = FileGetUtil.readItemData(player.getName(), page); // 从存储中读取当前页的数据
+        Map<String, Map<String, Object>> inventoryData = PlayerDataStorageUtil.readItemData(player.getName(), page); // 从存储中读取当前页的数据
 
         for (int row = 0; row < layout.size(); row++) {
             String line = layout.get(row);
@@ -214,7 +216,7 @@ public class CollectGuiManager {
                     }
 
                     if (nbtData != null && !nbtData.isEmpty()) {
-                        FileGetUtil.applyNbtData(loadedItem, nbtData); // 调用应用 NBT 的方法
+                        PlayerDataStorageUtil.applyNbtData(loadedItem, nbtData); // 调用应用 NBT 的方法
                     }
 
                     inventory.setItem(slot, loadedItem); // 将读取的物品设置到库存中

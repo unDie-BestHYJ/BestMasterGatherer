@@ -1,7 +1,6 @@
-package com.plugins.besthyj.bestmastergatherer.attribute;
+package com.plugins.besthyj.bestmastergatherer.integration.attribute.attributeplus;
 
 import com.plugins.besthyj.bestmastergatherer.constant.CommonConstant;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.serverct.ersha.AttributePlus;
@@ -10,7 +9,6 @@ import org.serverct.ersha.attribute.data.AttributeData;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class AttributePlusHandler {
 

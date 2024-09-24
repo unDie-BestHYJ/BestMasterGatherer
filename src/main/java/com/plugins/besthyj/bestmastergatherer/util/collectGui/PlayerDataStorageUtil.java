@@ -1,17 +1,15 @@
-package com.plugins.besthyj.bestmastergatherer.util;
+package com.plugins.besthyj.bestmastergatherer.util.collectGui;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.plugins.besthyj.bestmastergatherer.BestMasterGatherer;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -95,7 +93,7 @@ public class PlayerDataStorageUtil {
      */
     private static void saveItemData(String playerName, int page, Map<Integer, Map<String, Object>> newInventoryData) {
         // 定义文件路径，以玩家名为文件夹，以页数作为文件名
-        File file = new File(plugin.getDataFolderPath() + "/storage" + File.separator + playerName, "page_" + page + ".json");
+        File file = new File(plugin.getDataFolderPath() + File.separator + "storage" + File.separator + playerName, "page_" + page + ".json");
         file.getParentFile().mkdirs(); // 如果目录不存在则创建
 
         Map<Integer, Map<String, Object>> inventoryData = new HashMap<>();
@@ -121,13 +119,6 @@ public class PlayerDataStorageUtil {
     }
 
     /**
-     * 移除物品数据（删除 JSON 文件）
-     *
-     * @param player
-     * @param item
-     */
-
-    /**
      * 删除某个玩家指定页数的物品数据文件
      *
      * @param playerName 玩家名
@@ -135,48 +126,108 @@ public class PlayerDataStorageUtil {
      * @return 如果文件成功删除返回true，否则返回false
      */
     public static boolean deleteItemData(String playerName, int page) {
-        File file = new File(plugin.getDataFolderPath() + "/storage" + File.separator + playerName, "page_" + page + ".json");
+        File file = new File(plugin.getDataFolderPath() + File.separator + "storage" + File.separator + playerName, "page_" + page + ".json");
         return file.exists() && file.delete();
     }
 
     /**
-     * 将ItemStack转换为物品详细信息的Map
+     * 从指定玩家的指定页数JSON文件中读取物品数据
      *
-     * @param item 物品堆
-     * @return 包含物品数量、材质、名称和描述的Map
+     * @param playerName 玩家名
+     * @param page 页数
+     * @return 返回一个Map，key为槽位ID，value为物品的详细信息
      */
-    public static Map<String, Object> convertItemToData(ItemStack item) {
-        Map<String, Object> data = new HashMap<>();
-        data.put("amount", item.getAmount());
-        data.put("material", item.getType().toString());
-        if (item.hasItemMeta()) {
-            if (item.getItemMeta().hasDisplayName()) {
-                data.put("name", item.getItemMeta().getDisplayName());
-            }
-            if (item.getItemMeta().hasLore()) {
-                data.put("lore", item.getItemMeta().getLore());
-            }
+    public static Map<String, Map<String, Object>> readItemData(String playerName, int page) {
+        File file = new File(plugin.getDataFolderPath() + File.separator + "storage" + File.separator + playerName, "page_" + page + ".json");
+        if (!file.exists()) {
+            return null;
         }
-        return data;
+
+        try (FileReader reader = new FileReader(file)) {
+            return gson.fromJson(reader, HashMap.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
-     * 将物品详细信息的Map转换为ItemStack
+     * 获取物品数量Map
      *
-     * @param data 包含物品数量、材质、名称和描述的Map
-     * @return ItemStack物品堆
+     * @param playerName
+     * @return
      */
-    public static ItemStack convertDataToItem(Map<String, Object> data) {
-        ItemStack item = new ItemStack(Material.valueOf((String) data.get("material")), ((Double) data.get("amount")).intValue());
-        ItemMeta meta = item.getItemMeta();
-        if (data.containsKey("name")) {
-            meta.setDisplayName((String) data.get("name"));
+    public static Map<String, Integer> readItems(String playerName) {
+        File playerFolder = new File(plugin.getDataFolderPath() + File.separator + "storage" + File.separator + playerName);
+        if (!playerFolder.exists() || !playerFolder.isDirectory()) {
+            return null; // 如果玩家文件夹不存在，则返回 null
         }
-        if (data.containsKey("lore")) {
-            meta.setLore((List<String>) data.get("lore"));
+
+        Map<String, Integer> itemsMap = new HashMap<>();
+
+        // 遍历玩家文件夹中的所有文件
+        for (File file : playerFolder.listFiles()) {
+            if (file.isFile() && file.getName().endsWith(".json")) {
+                try (FileReader reader = new FileReader(file)) {
+                    // 读取 JSON 文件内容并解析为 Map
+                    Map<String, Map<String, Object>> fileData = gson.fromJson(reader, HashMap.class);
+
+                    // 遍历当前文件中的所有槽位数据
+                    for (Map.Entry<String, Map<String, Object>> entry : fileData.entrySet()) {
+                        Map<String, Object> itemData = entry.getValue();
+
+                        // 获取物品名称和数量
+                        String itemName = (String) itemData.get("itemName");
+                        Double itemCount = (Double) itemData.get("amount"); // 读取数量，注意这是 Double 类型
+
+                        // 将物品名称和数量添加到 itemsMap
+                        if (itemName != null && itemCount != null) {
+                            int totalCount = itemCount.intValue(); // 转换为 int 类型
+                            itemsMap.merge(itemName, totalCount, Integer::sum); // 累加相同物品的数量
+                        }
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace(); // 处理异常
+                }
+            }
         }
-        item.setItemMeta(meta);
-        return item;
+
+        return itemsMap; // 返回物品名称和数量的映射
+    }
+
+    /**
+     * 应用nbt标签
+     *
+     * @param item
+     * @param nbtData
+     */
+    public static void applyNbtData(ItemStack item, String nbtData) {
+        try {
+            // 获取 NMS 版本的 ItemStack
+            net.minecraft.server.v1_12_R1.ItemStack nmsItem = CraftItemStack.asNMSCopy(item);
+            net.minecraft.server.v1_12_R1.NBTTagCompound tag = nmsItem.getTag() != null ? nmsItem.getTag() : new net.minecraft.server.v1_12_R1.NBTTagCompound();
+
+            // 使用反射访问 MojangsonParser.parse 方法
+            Class<?> mojangsonParserClass = Class.forName("net.minecraft.server.v1_12_R1.MojangsonParser");
+            java.lang.reflect.Method parseMethod = mojangsonParserClass.getDeclaredMethod("parse", String.class);
+            parseMethod.setAccessible(true);  // 确保我们能够访问 private 方法
+
+            // 调用 parse 方法将 NBT 字符串转换为 NBTTagCompound
+            net.minecraft.server.v1_12_R1.NBTTagCompound nbtParsed = (net.minecraft.server.v1_12_R1.NBTTagCompound) parseMethod.invoke(null, nbtData);
+
+            // 合并现有的 NBT 数据
+            tag.a(nbtParsed); // 将新解析的 NBT 数据合并到现有的 NBT 数据中
+
+            // 将 NBT 数据设置回物品
+            nmsItem.setTag(tag);
+
+            // 更新 Bukkit ItemStack
+            item.setItemMeta(CraftItemStack.getItemMeta(nmsItem));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            // 处理可能的异常，例如反射或 NBT 格式错误
+        }
     }
 
     /**

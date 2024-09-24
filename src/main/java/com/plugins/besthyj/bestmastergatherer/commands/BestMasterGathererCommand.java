@@ -1,8 +1,8 @@
 package com.plugins.besthyj.bestmastergatherer.commands;
 
 import com.plugins.besthyj.bestmastergatherer.BestMasterGatherer;
-import com.plugins.besthyj.bestmastergatherer.manager.AttributeGuiManager;
-import com.plugins.besthyj.bestmastergatherer.manager.CollectGuiManager;
+import com.plugins.besthyj.bestmastergatherer.manager.attributeGui.AttributeGuiManager;
+import com.plugins.besthyj.bestmastergatherer.manager.collectGui.CollectGuiManager;
 import com.plugins.besthyj.bestmastergatherer.util.CommandUsageUtil;
 import com.plugins.besthyj.bestmastergatherer.util.PlayerMessage;
 import org.bukkit.command.Command;
@@ -22,6 +22,12 @@ public class BestMasterGathererCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (args.length == 0) {
+            PlayerMessage.sendMessage(sender, "&c请输入子命令！");
+            CommandUsageUtil.showHelpMessage(sender);
+            return false;
+        }
+
         String subCommand = args[0].toLowerCase();
         String[] subArgs = Arrays.copyOfRange(args, 1, args.length);
         
@@ -33,15 +39,9 @@ public class BestMasterGathererCommand implements CommandExecutor {
             plugin.reloadConfig();
             PlayerMessage.sendMessage(sender, "&a配置文件已重新加载！");
             return true;
-        } else {
-            CommandUsageUtil.showHelpMessage(sender);
         }
 
-        if (args.length == 0) {
-            PlayerMessage.sendMessage(sender, "&c请输入子命令！");
-            return false;
-        }
-
+        CommandUsageUtil.showHelpMessage(sender);
         return false;
     }
 

@@ -1,12 +1,13 @@
 package com.plugins.besthyj.bestmastergatherer;
 
 import com.plugins.besthyj.bestmastergatherer.commands.BestMasterGathererCommand;
-import com.plugins.besthyj.bestmastergatherer.listener.AttributeGuiListener;
-import com.plugins.besthyj.bestmastergatherer.manager.AttributeGuiManager;
-import com.plugins.besthyj.bestmastergatherer.manager.CollectGuiManager;
-import com.plugins.besthyj.bestmastergatherer.listener.CollectGuiListener;
-import com.plugins.besthyj.bestmastergatherer.util.FileGetUtil;
-import com.plugins.besthyj.bestmastergatherer.util.PlayerDataStorageUtil;
+import com.plugins.besthyj.bestmastergatherer.listener.attributeGui.AttributeGuiListener;
+import com.plugins.besthyj.bestmastergatherer.manager.attributeGui.AttributeGuiManager;
+import com.plugins.besthyj.bestmastergatherer.manager.collectGui.CollectGuiManager;
+import com.plugins.besthyj.bestmastergatherer.listener.collectGui.CollectGuiListener;
+import com.plugins.besthyj.bestmastergatherer.util.GUIFileUtil;
+import com.plugins.besthyj.bestmastergatherer.util.attributeGui.AttributeGuiItemUtil;
+import com.plugins.besthyj.bestmastergatherer.util.collectGui.PlayerDataStorageUtil;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -32,15 +33,19 @@ public class BestMasterGatherer extends JavaPlugin {
             storageFolder.mkdir();
         }
 
-        // 方法、事件初始化
+        // manager
         CollectGuiManager.init(this);
         AttributeGuiManager.init(this);
 
+        // util
+        AttributeGuiItemUtil.init(this);
         PlayerDataStorageUtil.init(this);
-        FileGetUtil.init(this);
+        GUIFileUtil.init(this);
 
+        // command
         this.getCommand("BestMasterGatherer").setExecutor(new BestMasterGathererCommand(this));
 
+        // listener
         collectGuiListener = new CollectGuiListener(this);
         getServer().getPluginManager().registerEvents(collectGuiListener, this);
         attributeGuiListener = new AttributeGuiListener(this);

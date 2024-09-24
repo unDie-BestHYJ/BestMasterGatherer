@@ -1,8 +1,11 @@
-package com.plugins.besthyj.bestmastergatherer.manager;
+package com.plugins.besthyj.bestmastergatherer.manager.attributeGui;
 
 import com.plugins.besthyj.bestmastergatherer.BestMasterGatherer;
+import com.plugins.besthyj.bestmastergatherer.constant.CommonConstant;
+import com.plugins.besthyj.bestmastergatherer.model.attributeGui.AttributeGuiItem;
 import com.plugins.besthyj.bestmastergatherer.util.ColorUtil;
 import com.plugins.besthyj.bestmastergatherer.util.PlayerMessage;
+import com.plugins.besthyj.bestmastergatherer.util.attributeGui.AttributeGuiItemUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -64,7 +67,7 @@ public class AttributeGuiManager {
 
         Inventory inventory = Bukkit.createInventory(null, 9 * (!layout.isEmpty() ? layout.size() : 1 ), guiName);
 
-        Map<String, ItemStack> itemStackMap = new HashMap<>();
+        Map<String, AttributeGuiItem> itemMap = AttributeGuiItemUtil.loadItems(CommonConstant.ATTRIBUTE_FOLDER);
 
         for (int row = 0; row < layout.size(); row++) {
             String line = layout.get(row);
@@ -85,11 +88,22 @@ public class AttributeGuiManager {
                 }
 
                 if (config.contains("items." + itemId)) {
-                    ItemStack item = itemStackMap.computeIfAbsent(itemId, id -> createGuiItem(config, id));
+                    AttributeGuiItem attributeItem = null;
+                    if (itemMap != null) {
+                        attributeItem = itemMap.get(itemId);
+                    }
+
+                    if (attributeItem == null) {
+                        continue;
+                    }
+
+                    int count = AttributeGuiItemUtil.getCollectedCount(player, attributeItem);
+
+                    ItemStack itemStack = AttributeGuiItemUtil.createGuiItemFromAttributeItem(attributeItem, count);
 
                     int slot = row * 9 + col;
 
-                    inventory.setItem(slot, item);
+                    inventory.setItem(slot, itemStack);
                 }
 
                 col++;
@@ -98,34 +112,4 @@ public class AttributeGuiManager {
 
         player.openInventory(inventory);
     }
-
-    /**
-     * 创建 GUI 中的物品
-     *
-     * @param config
-     * @param itemId
-     * @return
-     */
-    private static ItemStack createGuiItem(FileConfiguration config, String itemId) {
-        int id = config.getInt("items." + itemId + ".Id");
-        int data = config.getInt("items." + itemId + ".Data", 0);
-
-        ItemStack itemStack = new ItemStack(Material.getMaterial(id), 1, (short) data);
-        ItemMeta meta = itemStack.getItemMeta();
-
-        String displayName = ColorUtil.translateColorCode(config.getString("items." + itemId + ".Display"));
-
-        meta.setDisplayName(displayName);
-
-        List<String> lores = config.getStringList("items." + itemId + ".Lores");
-        List<String> translatedLores = new ArrayList<>();
-        for (String lore : lores) {
-            translatedLores.add(ColorUtil.translateColorCode(lore));
-        }
-        meta.setLore(translatedLores);
-
-        itemStack.setItemMeta(meta);
-        return itemStack;
-    }
-
 }

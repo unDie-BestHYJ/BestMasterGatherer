@@ -1,4 +1,4 @@
-package com.plugins.besthyj.bestmastergatherer.util;
+package com.plugins.besthyj.bestmastergatherer.model.collectGui;
 
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;

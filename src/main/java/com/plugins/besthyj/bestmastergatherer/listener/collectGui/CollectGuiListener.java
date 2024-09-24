@@ -1,10 +1,10 @@
-package com.plugins.besthyj.bestmastergatherer.listener;
+package com.plugins.besthyj.bestmastergatherer.listener.collectGui;
 
 import com.plugins.besthyj.bestmastergatherer.BestMasterGatherer;
-import com.plugins.besthyj.bestmastergatherer.manager.CollectGuiManager;
+import com.plugins.besthyj.bestmastergatherer.manager.collectGui.CollectGuiManager;
 import com.plugins.besthyj.bestmastergatherer.util.ColorUtil;
-import com.plugins.besthyj.bestmastergatherer.util.PlayerDataStorageUtil;
-import com.plugins.besthyj.bestmastergatherer.util.PaginatedInventoryHolder;
+import com.plugins.besthyj.bestmastergatherer.util.collectGui.PlayerDataStorageUtil;
+import com.plugins.besthyj.bestmastergatherer.model.collectGui.PaginatedInventoryHolder;
 import com.plugins.besthyj.bestmastergatherer.util.PlayerMessage;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;

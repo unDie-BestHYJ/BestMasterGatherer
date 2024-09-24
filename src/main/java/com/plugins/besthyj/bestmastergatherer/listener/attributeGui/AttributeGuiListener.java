@@ -1,8 +1,7 @@
-package com.plugins.besthyj.bestmastergatherer.listener;
+package com.plugins.besthyj.bestmastergatherer.listener.attributeGui;
 
 import com.plugins.besthyj.bestmastergatherer.BestMasterGatherer;
 import com.plugins.besthyj.bestmastergatherer.util.ColorUtil;
-import com.plugins.besthyj.bestmastergatherer.util.PlayerDataStorageUtil;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.EventHandler;
@@ -13,7 +12,6 @@ import org.bukkit.inventory.InventoryView;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class AttributeGuiListener implements Listener {
