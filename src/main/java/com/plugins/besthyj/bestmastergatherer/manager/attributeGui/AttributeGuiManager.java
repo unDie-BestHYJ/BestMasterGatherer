@@ -48,6 +48,10 @@ public class AttributeGuiManager {
         }
     }
 
+    public static Map<String, FileConfiguration> getGuiConfigs() {
+        return guiConfigs;
+    }
+
     /**
      * 打开gui
      *
@@ -67,7 +71,7 @@ public class AttributeGuiManager {
 
         Inventory inventory = Bukkit.createInventory(null, 9 * (!layout.isEmpty() ? layout.size() : 1 ), guiName);
 
-        Map<String, AttributeGuiItem> itemMap = AttributeGuiItemUtil.loadItems(CommonConstant.ATTRIBUTE_FOLDER);
+        Map<String, AttributeGuiItem> itemMap = AttributeGuiItemUtil.loadItems(CommonConstant.ATTRIBUTE_FOLDER, guiId);
 
         for (int row = 0; row < layout.size(); row++) {
             String line = layout.get(row);

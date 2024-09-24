@@ -1,6 +1,7 @@
 package com.plugins.besthyj.bestmastergatherer.listener.collectGui;
 
 import com.plugins.besthyj.bestmastergatherer.BestMasterGatherer;
+import com.plugins.besthyj.bestmastergatherer.manager.attributeGui.PlayerAttribute;
 import com.plugins.besthyj.bestmastergatherer.manager.collectGui.CollectGuiManager;
 import com.plugins.besthyj.bestmastergatherer.util.ColorUtil;
 import com.plugins.besthyj.bestmastergatherer.util.collectGui.PlayerDataStorageUtil;
@@ -112,6 +113,8 @@ public class CollectGuiListener implements Listener {
                     PlayerDataStorageUtil.saveItemData(player, item, page, slot);
                 }
             }
+
+            PlayerAttribute.addAttributeToPlayer(player);
 
             PlayerMessage.sendMessage(player, "&a你的仓库物品已保存！");
         }

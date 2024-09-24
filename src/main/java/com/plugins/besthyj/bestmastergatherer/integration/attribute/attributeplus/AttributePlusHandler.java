@@ -18,7 +18,8 @@ public class AttributePlusHandler {
      * @param player
      * @param item
      */
-    private static void addAttributesItemStack(Player player, ItemStack item) {
+    public static void addAttributesItemStack(Player player, ItemStack item) {
+        removeAttributeSource(player);
         AttributeData attributeData = AttributePlus.attributeManager.getAttributeData(player);
         List<ItemStack> itemStackList = new ArrayList<>();
         itemStackList.add(item);
@@ -32,7 +33,8 @@ public class AttributePlusHandler {
      * @param player
      * @param itemStackList
      */
-    private static void addAttributesItemStack(Player player, List<ItemStack> itemStackList) {
+    public static void addAttributesItemStack(Player player, List<ItemStack> itemStackList) {
+        removeAttributeSource(player);
         AttributeData attributeData = AttributePlus.attributeManager.getAttributeData(player);
         AttributeAPI.addSourceAttributeFromItems(attributeData, CommonConstant.PLUGIN_NAME, itemStackList);
     }

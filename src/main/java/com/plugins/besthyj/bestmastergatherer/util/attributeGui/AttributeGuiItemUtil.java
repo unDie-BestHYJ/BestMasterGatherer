@@ -27,7 +27,7 @@ public class AttributeGuiItemUtil {
         plugin = pluginInstance;
     }
 
-    public static Map<String, AttributeGuiItem> loadItems(String folder) {
+    public static Map<String, AttributeGuiItem> loadItems(String folder, String guiId) {
         Map<String, AttributeGuiItem> itemMap = new HashMap<>();
 
         File directory = new File(plugin.getDataFolder(), folder);
@@ -36,7 +36,7 @@ public class AttributeGuiItemUtil {
         }
 
         for (File file : directory.listFiles()) {
-            if (file.getName().endsWith(".yml")) {
+            if (file.getName().endsWith(".yml") && file.getName().replace(".yml", "").equals(guiId)) {
                 FileConfiguration config = YamlConfiguration.loadConfiguration(file);
 
                 // 获取 items 部分
@@ -98,6 +98,9 @@ public class AttributeGuiItemUtil {
             StringBuffer updatedLore = new StringBuffer();
             while (matcher.find()) {
                 int number = Integer.parseInt(matcher.group(1));
+
+//                Bukkit.getLogger().info(count + " " + number);
+
                 String replacement = (count >= number) ? CommonConstant.COLLECTED : CommonConstant.UNCOLLECTED;
 
                 matcher.appendReplacement(updatedLore, replacement);
@@ -142,6 +145,39 @@ public class AttributeGuiItemUtil {
         return itemStack;
     }
 
+    public static ItemStack getAttributeItemStack(AttributeGuiItem attributeItem, int count) {
+        int id = attributeItem.getItemTypeId();
+        int data = attributeItem.getItemTypeData();
+
+        ItemStack itemStack = new ItemStack(Material.getMaterial(id), 1, (short) data);
+        ItemMeta itemMeta = itemStack.getItemMeta();
+
+        String displayName = ColorUtil.translateColorCode(attributeItem.getItemName());
+        itemMeta.setDisplayName(displayName);
+
+        Map<Integer, List<String>> attributesMap = attributeItem.getAttributesMap();
+
+        List<String> attrLores = new ArrayList<>();
+
+        for (Map.Entry<Integer, List<String>> entry : attributesMap.entrySet()) {
+            Integer number = entry.getKey();
+            List<String> attrList = entry.getValue();
+
+            if (count >= number) {
+                for (String attr : attrList) {
+                    attrLores.add(ColorUtil.translateColorCode(attr));
+                }
+            }
+        }
+
+        itemMeta.setLore(attrLores);
+        itemStack.setItemMeta(itemMeta);
+
+        Bukkit.getLogger().info(itemStack.toString());
+
+        return itemStack;
+    }
+
     /**
      * 获取 mm物品名 集合
      *
@@ -162,8 +198,8 @@ public class AttributeGuiItemUtil {
             displaySet.add(displayName);
         }
 
-        Bukkit.getLogger().info("" + displaySet.size());
-        Bukkit.getLogger().info(displaySet.toString());
+//        Bukkit.getLogger().info("" + displaySet.size());
+//        Bukkit.getLogger().info(displaySet.toString());
 
         return displaySet;
     }
@@ -176,23 +212,12 @@ public class AttributeGuiItemUtil {
      * @return
      */
     public static Integer getCollectedCount(Player player, AttributeGuiItem attributeGuiItem) {
-        Set<String> displaySet = getDisplaySet(attributeGuiItem);
-
-        if (displaySet != null) {
-            Bukkit.getLogger().info("displaySet Size " + displaySet.size());
-        } else {
-            Bukkit.getLogger().info("displaySet Size " + 0);
-        }
+        Set<String> displaySet = new HashSet<>();
+        displaySet = getDisplaySet(attributeGuiItem);
 
         Map<String, Integer> stringIntegerMap = PlayerDataStorageUtil.readItems(player.getName());
 
         Set<String> itemSet  = stringIntegerMap.keySet();
-
-//        if (itemSet != null) {
-//            Bukkit.getLogger().info("itemSet Size " + itemSet.size());
-//        } else {
-//            Bukkit.getLogger().info("itemSet Size " + 0);
-//        }
 
         int count = 0;
 
