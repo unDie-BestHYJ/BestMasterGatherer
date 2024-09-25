@@ -114,9 +114,11 @@ public class CollectGuiListener implements Listener {
                 }
             }
 
+            PlayerMessage.sendMessage(player, "&a你的仓库物品已保存！");
+
             PlayerAttribute.addAttributeToPlayer(player);
 
-            PlayerMessage.sendMessage(player, "&a你的仓库物品已保存！");
+            PlayerMessage.sendMessage(player, "&6你的属性已更新！");
         }
     }
 

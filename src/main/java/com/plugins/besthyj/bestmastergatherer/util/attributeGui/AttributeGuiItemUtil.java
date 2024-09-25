@@ -99,8 +99,6 @@ public class AttributeGuiItemUtil {
             while (matcher.find()) {
                 int number = Integer.parseInt(matcher.group(1));
 
-//                Bukkit.getLogger().info(count + " " + number);
-
                 String replacement = (count >= number) ? CommonConstant.COLLECTED : CommonConstant.UNCOLLECTED;
 
                 matcher.appendReplacement(updatedLore, replacement);
@@ -198,9 +196,6 @@ public class AttributeGuiItemUtil {
             displaySet.add(displayName);
         }
 
-//        Bukkit.getLogger().info("" + displaySet.size());
-//        Bukkit.getLogger().info(displaySet.toString());
-
         return displaySet;
     }
 
@@ -216,11 +211,14 @@ public class AttributeGuiItemUtil {
 
         Map<String, Integer> stringIntegerMap = PlayerDataStorageUtil.readItems(player.getName());
 
-        Set<String> itemSet  = stringIntegerMap.keySet();
+        Set<String> itemSet  = null;
+        if (stringIntegerMap != null) {
+            itemSet = stringIntegerMap.keySet();
+        }
 
         int count = 0;
 
-        if (displaySet != null) {
+        if (displaySet != null && itemSet != null) {
             for (String displayName : displaySet) {
                 if (itemSet.contains(displayName)) {
                     count++;
