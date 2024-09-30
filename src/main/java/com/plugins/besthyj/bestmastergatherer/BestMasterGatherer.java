@@ -19,6 +19,12 @@ public class BestMasterGatherer extends JavaPlugin {
     private CollectGuiListener collectGuiListener;
     private AttributeGuiListener attributeGuiListener;
 
+    private GUIFileUtil guiFileUtil;
+
+    public GUIFileUtil getGuiFileUtil() {
+        return guiFileUtil;
+    }
+
     @Override
     public void onEnable() {
         saveDefaultConfig();
@@ -40,7 +46,7 @@ public class BestMasterGatherer extends JavaPlugin {
         // util
         AttributeGuiItemUtil.init(this);
         PlayerDataStorageUtil.init(this);
-        GUIFileUtil.init(this);
+        guiFileUtil = new GUIFileUtil(this);
 
         // command
         this.getCommand("BestMasterGatherer").setExecutor(new BestMasterGathererCommand(this));

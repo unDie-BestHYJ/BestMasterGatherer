@@ -8,7 +8,7 @@ public class GUIFileUtil {
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private static BestMasterGatherer plugin;
 
-    public static void init(BestMasterGatherer instance) {
-        plugin = instance;
+    public GUIFileUtil(BestMasterGatherer plugin) {
+        this.plugin = plugin;
     }
 }
