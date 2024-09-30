@@ -79,7 +79,7 @@ public class AttributeGuiItemUtil {
      * @param attributeItem
      * @return
      */
-    public ItemStack createGuiItemFromAttributeItem(AttributeGuiItem attributeItem, int count) {
+    public ItemStack createGuiItemFromAttributeItem(AttributeGuiItem attributeItem, int count, Player player) {
         int id = attributeItem.getItemTypeId();
         int data = attributeItem.getItemTypeData();
 
@@ -92,18 +92,33 @@ public class AttributeGuiItemUtil {
         List<String> lores = attributeItem.getLoresList();
         List<String> translatedLores = new ArrayList<>();
         for (String lore : lores) {
-            Pattern pattern = Pattern.compile(VariableConstant.IS_USEFUL_REGEX);
-            Matcher matcher = pattern.matcher(lore);
+            if (lore.contains(VariableConstant.COLLECTION_INFO)) {
+                Set<String> collectionNameList = getDisplaySet(attributeItem);
+                Set<String> collectedNameList = getCollectedSet(player, attributeItem);
+                List<String> collectionLores = new ArrayList<>();
+                for (String mmItemName : collectionNameList) {
+                    if (collectedNameList.contains(mmItemName)) {
+                        collectionLores.add(ColorUtil.translateColorCode(mmItemName + " " + CommonConstant.COLLECTED));
+                    } else {
+                        collectionLores.add(ColorUtil.translateColorCode(mmItemName + " " + CommonConstant.UNCOLLECTED));
+                    }
+                }
+                lore = String.join("\n", collectionLores);
+            }
+
+            Pattern usefulPattern = Pattern.compile(VariableConstant.IS_USEFUL_REGEX);
+            Matcher usefulMatcher = usefulPattern.matcher(lore);
 
             StringBuffer updatedLore = new StringBuffer();
-            while (matcher.find()) {
-                int number = Integer.parseInt(matcher.group(1));
+
+            while (usefulMatcher.find()) {
+                int number = Integer.parseInt(usefulMatcher.group(1));
 
                 String replacement = (count >= number) ? CommonConstant.COLLECTED : CommonConstant.UNCOLLECTED;
 
-                matcher.appendReplacement(updatedLore, replacement);
+                usefulMatcher.appendReplacement(updatedLore, replacement);
             }
-            matcher.appendTail(updatedLore);
+            usefulMatcher.appendTail(updatedLore);
 
             translatedLores.add(ColorUtil.translateColorCode(updatedLore.toString()));
         }
@@ -182,13 +197,13 @@ public class AttributeGuiItemUtil {
      * @param item
      * @return
      */
-    public Set<String> getDisplaySet(AttributeGuiItem item) {
+    public LinkedHashSet<String> getDisplaySet(AttributeGuiItem item) {
         List<String> mmItems = item.getMMItemsList();
         if (mmItems == null || mmItems.isEmpty()) {
             return null;
         }
 
-        Set<String> displaySet = new HashSet<>();
+        LinkedHashSet<String> displaySet = new LinkedHashSet<>();
 
         for (String mmItem : mmItems) {
             String displayName = MythicMobsUtils.getMythicItemDisplayName(mmItem);
@@ -228,5 +243,35 @@ public class AttributeGuiItemUtil {
         }
 
         return count;
+    }
+
+    /**
+     * 获取已经收集的物品集合
+     *
+     * @param player
+     * @param attributeGuiItem
+     * @return
+     */
+    public Set<String> getCollectedSet(Player player, AttributeGuiItem attributeGuiItem) {
+        Set<String> displaySet = getDisplaySet(attributeGuiItem);
+        Set<String> collectedDisplaySet = new HashSet<>();
+
+        PlayerDataStorageUtil playerDataStorageUtil = plugin.getPlayerDataStorageUtil();
+        Map<String, Integer> stringIntegerMap = playerDataStorageUtil.readItems(player.getName());
+
+        Set<String> itemSet  = null;
+        if (stringIntegerMap != null) {
+            itemSet = stringIntegerMap.keySet();
+        }
+
+        if (displaySet != null && itemSet != null) {
+            for (String displayName : displaySet) {
+                if (itemSet.contains(displayName)) {
+                    collectedDisplaySet.add(displayName);
+                }
+            }
+        }
+
+        return collectedDisplaySet;
     }
 }

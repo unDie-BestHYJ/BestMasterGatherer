@@ -66,13 +66,10 @@ public class AttributeGuiManager {
         }
 
         String guiName = ColorUtil.translateColorCode(config.getString("guiName"));
-
         List<String> layout = config.getStringList("layout");
-
         Inventory inventory = Bukkit.createInventory(null, 9 * (!layout.isEmpty() ? layout.size() : 1 ), guiName);
 
         AttributeGuiItemUtil attributeGuiItemUtil = plugin.getAttributeGuiItemUtil();
-
         Map<String, AttributeGuiItem> itemMap = attributeGuiItemUtil.loadItems(CommonConstant.ATTRIBUTE_FOLDER, guiId);
 
         for (int row = 0; row < layout.size(); row++) {
@@ -104,11 +101,8 @@ public class AttributeGuiManager {
                     }
 
                     int count = attributeGuiItemUtil.getCollectedCount(player, attributeItem);
-
-                    ItemStack itemStack = attributeGuiItemUtil.createGuiItemFromAttributeItem(attributeItem, count);
-
+                    ItemStack itemStack = attributeGuiItemUtil.createGuiItemFromAttributeItem(attributeItem, count, player);
                     int slot = row * 9 + col;
-
                     inventory.setItem(slot, itemStack);
                 }
 

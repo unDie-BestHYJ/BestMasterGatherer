@@ -4,4 +4,5 @@ public class VariableConstant {
     public static final String CURRENT_PAGE = "{current_page}";
 
     public static final String IS_USEFUL_REGEX = "\\{is_useful_(\\d+)\\}";
+    public static final String COLLECTION_INFO = "{收集情况}";
 }
