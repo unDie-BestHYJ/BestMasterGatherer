@@ -25,11 +25,11 @@ import java.util.Map;
 
 public class CollectGuiManager {
 
-    private static BestMasterGatherer plugin;
-    private final static Map<String, FileConfiguration> guiConfigs = new HashMap<>();
+    private BestMasterGatherer plugin;
+    private final Map<String, FileConfiguration> guiConfigs = new HashMap<>();
 
-    public static void init(BestMasterGatherer pluginInstance) {
-        plugin = pluginInstance;
+    public CollectGuiManager(BestMasterGatherer plugin) {
+        this.plugin = plugin;
         File pluginFolderPath = plugin.getDataFolderPath();
         loadGuiConfigs(pluginFolderPath.getAbsolutePath());
     }
@@ -37,7 +37,7 @@ public class CollectGuiManager {
     /**
      * 加载所有 GUI 配置文件
      */
-    private static void loadGuiConfigs(String pluginFolderPath) {
+    private void loadGuiConfigs(String pluginFolderPath) {
         File guiFolder = new File(pluginFolderPath, "collectGUI");
         if (guiFolder.exists() && guiFolder.isDirectory()) {
             File[] guiFiles = guiFolder.listFiles((dir, name) -> name.endsWith(".yml"));
@@ -58,7 +58,7 @@ public class CollectGuiManager {
      * @param guiId  GUI 的 ID
      * @param page   页码
      */
-    public static void openGui(Player player, String guiId, int page) {
+    public void openGui(Player player, String guiId, int page) {
         FileConfiguration config = guiConfigs.get(guiId);
         if (config == null) {
 //            Bukkit.getLogger().info(guiConfigs.size() + "");
@@ -77,10 +77,13 @@ public class CollectGuiManager {
 
         Inventory inventory = Bukkit.createInventory(new PaginatedInventoryHolder(page), 9 * 6, guiName);
 
-        Map<String, Map<String, Object>> inventoryData = PlayerDataStorageUtil.readItemData(player.getName(), page);
+        PlayerDataStorageUtil playerDataStorageUtil = plugin.getPlayerDataStorageUtil();
+        Map<String, Map<String, Object>> inventoryData = playerDataStorageUtil.readItemData(player.getName(), page);
 
         Map<String, ItemStack> itemStackMap = new HashMap<>();
         ItemStack defaultItem = itemStackMap.computeIfAbsent("D", id -> createGuiItem(config, "D", page));
+
+        PlayerDataStorageUtil playerDataStorageUtil1 = plugin.getPlayerDataStorageUtil();
 
         for (int row = 0; row < layout.size(); row++) {
             String line = layout.get(row);
@@ -122,7 +125,7 @@ public class CollectGuiManager {
                     }
 
                     if (nbtData != null && !nbtData.isEmpty()) {
-                        PlayerDataStorageUtil.applyNbtData(loadedItem, nbtData); // 调用应用 NBT 的方法
+                        playerDataStorageUtil1.applyNbtData(loadedItem, nbtData); // 调用应用 NBT 的方法
                     }
 
                     inventory.setItem(slot, loadedItem); // 将读取的物品设置到库存中
@@ -140,7 +143,7 @@ public class CollectGuiManager {
      * @param guiId
      * @param page
      */
-    public static void updateGui(Player player, String guiId, int page) {
+    public void updateGui(Player player, String guiId, int page) {
         FileConfiguration config = guiConfigs.get(guiId);
         if (config == null) {
             PlayerMessage.sendMessage(player, "&c找不到对应的 GUI 配置文件！");
@@ -172,8 +175,10 @@ public class CollectGuiManager {
         // 清空现有物品
         inventory.clear();
 
+        PlayerDataStorageUtil playerDataStorageUtil = plugin.getPlayerDataStorageUtil();
+
         // 更新布局中的物品
-        Map<String, Map<String, Object>> inventoryData = PlayerDataStorageUtil.readItemData(player.getName(), page); // 从存储中读取当前页的数据
+        Map<String, Map<String, Object>> inventoryData = playerDataStorageUtil.readItemData(player.getName(), page); // 从存储中读取当前页的数据
 
         for (int row = 0; row < layout.size(); row++) {
             String line = layout.get(row);
@@ -216,7 +221,7 @@ public class CollectGuiManager {
                     }
 
                     if (nbtData != null && !nbtData.isEmpty()) {
-                        PlayerDataStorageUtil.applyNbtData(loadedItem, nbtData); // 调用应用 NBT 的方法
+                        playerDataStorageUtil.applyNbtData(loadedItem, nbtData); // 调用应用 NBT 的方法
                     }
 
                     inventory.setItem(slot, loadedItem); // 将读取的物品设置到库存中
@@ -234,7 +239,7 @@ public class CollectGuiManager {
      * @param itemId 物品 ID
      * @return 生成的物品
      */
-    private static ItemStack createGuiItem(FileConfiguration config, String itemId, int page) {
+    private ItemStack createGuiItem(FileConfiguration config, String itemId, int page) {
         Material material = Material.getMaterial(config.getInt("items." + itemId + ".Id"));
         int data = config.getInt("items." + itemId + ".Data", 0);
         String displayName = ColorUtil.translateColorCode(config.getString("items." + itemId + ".Display"));
@@ -264,7 +269,7 @@ public class CollectGuiManager {
      *
      * @param event 点击事件
      */
-    public static void handleInventoryClick(InventoryClickEvent event) {
+    public void handleInventoryClick(InventoryClickEvent event) {
         ItemStack currentItem = event.getCurrentItem();
         if (currentItem == null || !currentItem.hasItemMeta()) {
             return;
@@ -301,9 +306,10 @@ public class CollectGuiManager {
         }
     }
 
-    private static void saveCurrentPageData(Player player, String guiId, int currentPage) {
+    private void saveCurrentPageData(Player player, String guiId, int currentPage) {
         // 删除旧文件
-        PlayerDataStorageUtil.deleteItemData(player.getName(), currentPage);
+        PlayerDataStorageUtil playerDataStorageUtil = plugin.getPlayerDataStorageUtil();
+        playerDataStorageUtil.deleteItemData(player.getName(), currentPage);
 
         FileConfiguration config = guiConfigs.get(guiId);
         if (config == null) {
@@ -316,13 +322,13 @@ public class CollectGuiManager {
 
         // 遍历当前打开的库存，保存每个槽位的数据
         for (int slot = 0; slot < inventory.getSize(); slot++) {
-            if (PlayerDataStorageUtil.getFilledSlots(guiId, "collectGUI").contains(slot)) {
+            if (playerDataStorageUtil.getFilledSlots(guiId, "collectGUI").contains(slot)) {
                 continue;
             }
 
             ItemStack item = inventory.getItem(slot);
             if (item != null) {
-                PlayerDataStorageUtil.saveItemData(player, item, currentPage, slot);
+                playerDataStorageUtil.saveItemData(player, item, currentPage, slot);
             }
         }
     }
@@ -333,7 +339,7 @@ public class CollectGuiManager {
      * @param event InventoryClickEvent 对象
      * @return 当前页面编号，默认为 1
      */
-    public static int getCurrentPage(InventoryClickEvent event) {
+    public int getCurrentPage(InventoryClickEvent event) {
         InventoryView view = event.getView(); // 从事件中获取 InventoryView
         Inventory topInventory = view.getTopInventory(); // 获取顶层的 Inventory
 
@@ -350,7 +356,7 @@ public class CollectGuiManager {
     /**
      * 清理所有资源
      */
-    public static void clearResources() {
+    public void clearResources() {
         // 清空 GUI 配置
         guiConfigs.clear();
         plugin = null; // 清除插件引用

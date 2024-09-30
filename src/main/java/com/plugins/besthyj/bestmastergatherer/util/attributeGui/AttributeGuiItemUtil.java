@@ -21,13 +21,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class AttributeGuiItemUtil {
-    private static BestMasterGatherer plugin;
+    private BestMasterGatherer plugin;
 
-    public static void init(BestMasterGatherer pluginInstance) {
-        plugin = pluginInstance;
+    public AttributeGuiItemUtil(BestMasterGatherer plugin) {
+        this.plugin = plugin;
     }
 
-    public static Map<String, AttributeGuiItem> loadItems(String folder, String guiId) {
+    public Map<String, AttributeGuiItem> loadItems(String folder, String guiId) {
         Map<String, AttributeGuiItem> itemMap = new HashMap<>();
 
         File directory = new File(plugin.getDataFolder(), folder);
@@ -79,7 +79,7 @@ public class AttributeGuiItemUtil {
      * @param attributeItem
      * @return
      */
-    public static ItemStack createGuiItemFromAttributeItem(AttributeGuiItem attributeItem, int count) {
+    public ItemStack createGuiItemFromAttributeItem(AttributeGuiItem attributeItem, int count) {
         int id = attributeItem.getItemTypeId();
         int data = attributeItem.getItemTypeData();
 
@@ -121,7 +121,7 @@ public class AttributeGuiItemUtil {
      * @param itemId
      * @return
      */
-    public static ItemStack createGuiItem(FileConfiguration config, String itemId) {
+    public ItemStack createGuiItem(FileConfiguration config, String itemId) {
         int id = config.getInt("items." + itemId + ".Id");
         int data = config.getInt("items." + itemId + ".Data", 0);
 
@@ -143,7 +143,7 @@ public class AttributeGuiItemUtil {
         return itemStack;
     }
 
-    public static ItemStack getAttributeItemStack(AttributeGuiItem attributeItem, int count) {
+    public ItemStack getAttributeItemStack(AttributeGuiItem attributeItem, int count) {
         int id = attributeItem.getItemTypeId();
         int data = attributeItem.getItemTypeData();
 
@@ -182,7 +182,7 @@ public class AttributeGuiItemUtil {
      * @param item
      * @return
      */
-    public static Set<String> getDisplaySet(AttributeGuiItem item) {
+    public Set<String> getDisplaySet(AttributeGuiItem item) {
         List<String> mmItems = item.getMMItemsList();
         if (mmItems == null || mmItems.isEmpty()) {
             return null;
@@ -206,10 +206,11 @@ public class AttributeGuiItemUtil {
      * @param attributeGuiItem
      * @return
      */
-    public static Integer getCollectedCount(Player player, AttributeGuiItem attributeGuiItem) {
+    public Integer getCollectedCount(Player player, AttributeGuiItem attributeGuiItem) {
         Set<String> displaySet = getDisplaySet(attributeGuiItem);
 
-        Map<String, Integer> stringIntegerMap = PlayerDataStorageUtil.readItems(player.getName());
+        PlayerDataStorageUtil playerDataStorageUtil = plugin.getPlayerDataStorageUtil();
+        Map<String, Integer> stringIntegerMap = playerDataStorageUtil.readItems(player.getName());
 
         Set<String> itemSet  = null;
         if (stringIntegerMap != null) {

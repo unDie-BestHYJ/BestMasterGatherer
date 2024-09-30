@@ -1,5 +1,6 @@
 package com.plugins.besthyj.bestmastergatherer.manager.attributeGui;
 
+import com.plugins.besthyj.bestmastergatherer.BestMasterGatherer;
 import com.plugins.besthyj.bestmastergatherer.constant.CommonConstant;
 import com.plugins.besthyj.bestmastergatherer.integration.attribute.attributeplus.AttributePlusHandler;
 import com.plugins.besthyj.bestmastergatherer.model.attributeGui.AttributeGuiItem;
@@ -13,24 +14,33 @@ import java.util.List;
 import java.util.Map;
 
 public class PlayerAttribute {
+    private BestMasterGatherer plugin;
+
+    public PlayerAttribute(BestMasterGatherer plugin) {
+        this.plugin = plugin;
+    }
+
     /**
      * 获取 ItemStack 列表
      *
      * @param player
      * @return
      */
-    public static List<ItemStack> getItemStackList(Player player) {
-        Map<String, FileConfiguration> guiConfigs = AttributeGuiManager.getGuiConfigs();
+    public List<ItemStack> getItemStackList(Player player) {
+        AttributeGuiManager attributeGuiManager = plugin.getAttributeGuiManager();
+        Map<String, FileConfiguration> guiConfigs = attributeGuiManager.getGuiConfigs();
 
         List<ItemStack> items = new ArrayList<ItemStack>();
 
+        AttributeGuiItemUtil attributeGuiItemUtil = plugin.getAttributeGuiItemUtil();
+
         for (String guiId: guiConfigs.keySet()) {
-            Map<String, AttributeGuiItem> itemMap = AttributeGuiItemUtil.loadItems(CommonConstant.ATTRIBUTE_FOLDER, guiId);
+            Map<String, AttributeGuiItem> itemMap = attributeGuiItemUtil.loadItems(CommonConstant.ATTRIBUTE_FOLDER, guiId);
 
             for (AttributeGuiItem attributeGuiItem: itemMap.values()) {
-                int count = AttributeGuiItemUtil.getCollectedCount(player, attributeGuiItem);
+                int count = attributeGuiItemUtil.getCollectedCount(player, attributeGuiItem);
 
-                ItemStack itemStack = AttributeGuiItemUtil.getAttributeItemStack(attributeGuiItem, count);
+                ItemStack itemStack = attributeGuiItemUtil.getAttributeItemStack(attributeGuiItem, count);
 
                 items.add(itemStack);
             }
@@ -39,7 +49,7 @@ public class PlayerAttribute {
         return items;
     }
 
-    public static void addAttributeToPlayer(Player player) {
+    public void addAttributeToPlayer(Player player) {
         List<ItemStack> items = getItemStackList(player);
 
         AttributePlusHandler.addAttributesItemStack(player, items);

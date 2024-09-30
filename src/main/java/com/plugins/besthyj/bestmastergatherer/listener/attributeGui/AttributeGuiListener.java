@@ -84,10 +84,11 @@ public class AttributeGuiListener implements Listener {
         InventoryView view = event.getView();
         String inventoryTitle = view.getTitle();
 
-        if (guiNames.containsKey(inventoryTitle)) {
-            PlayerAttribute.addAttributeToPlayer(player);
-        }
+        PlayerAttribute playerAttribute = plugin.getPlayerAttribute();
 
-        PlayerMessage.sendMessage(player, "&6你的属性已更新！");
+        if (guiNames.containsKey(inventoryTitle)) {
+            playerAttribute.addAttributeToPlayer(player);
+            PlayerMessage.sendMessage(player, "&6你的属性已更新！");
+        }
     }
 }

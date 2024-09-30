@@ -49,9 +49,11 @@ public class BestMasterGathererCommand implements CommandExecutor {
         if (sender instanceof Player) {
             Player player = (Player) sender;
 
+            CollectGuiManager collectGuiManager = plugin.getCollectGuiManager();
+
             if (subArgs.length == 2 && subArgs[0].equalsIgnoreCase("opengui")) {
                 String guiId = subArgs[1];
-                CollectGuiManager.openGui(player, guiId, 1);
+                collectGuiManager.openGui(player, guiId, 1);
                 return true;
             }
         }
@@ -64,7 +66,8 @@ public class BestMasterGathererCommand implements CommandExecutor {
 
             if (subArgs.length == 2 && subArgs[0].equalsIgnoreCase("opengui")) {
                 String guiId = subArgs[1];
-                AttributeGuiManager.openGui(player, guiId);
+                AttributeGuiManager attributeGuiManager = plugin.getAttributeGuiManager();
+                attributeGuiManager.openGui(player, guiId);
                 return true;
             }
         }

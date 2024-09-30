@@ -69,11 +69,15 @@ public class CollectGuiListener implements Listener {
         // 获取带颜色的界面标题
         String inventoryTitle = view.getTitle();
 
+        PlayerDataStorageUtil playerDataStorageUtil = plugin.getPlayerDataStorageUtil();
+
+        CollectGuiManager collectGuiManager = plugin.getCollectGuiManager();
+
         // 检查是否点击的是自定义 GUI
         if (guiNames.containsKey(inventoryTitle)) {
 
             if (clickedInventory != null && clickedInventory.equals(view.getTopInventory())) {
-                List<Integer> filledSlots = PlayerDataStorageUtil.getFilledSlots(guiNames.get(inventoryTitle), "collectGUI");
+                List<Integer> filledSlots = playerDataStorageUtil.getFilledSlots(guiNames.get(inventoryTitle), "collectGUI");
 
                 int clickedSlot = event.getSlot();
                 if (filledSlots.contains(clickedSlot)) {
@@ -81,7 +85,7 @@ public class CollectGuiListener implements Listener {
                 } else {
                     event.setCancelled(false);
                 }
-                CollectGuiManager.handleInventoryClick(event); // 处理 GUI 内部点击逻辑
+                collectGuiManager.handleInventoryClick(event); // 处理 GUI 内部点击逻辑
             }
         }
     }
@@ -103,20 +107,22 @@ public class CollectGuiListener implements Listener {
             int page = ((PaginatedInventoryHolder) closedInventory.getHolder()).getCurrentPage();
 
             // 删除旧文件
-            PlayerDataStorageUtil.deleteItemData(player.getName(), page);
+            PlayerDataStorageUtil playerDataStorageUtil = plugin.getPlayerDataStorageUtil();
+            playerDataStorageUtil.deleteItemData(player.getName(), page);
 
             for (int slot = 0; slot < closedInventory.getSize(); slot++) {
-                if (PlayerDataStorageUtil.getFilledSlots(guiId, "collectGUI").contains(slot)) {continue;}
+                if (playerDataStorageUtil.getFilledSlots(guiId, "collectGUI").contains(slot)) {continue;}
                 ItemStack item = closedInventory.getItem(slot);
                 if (item != null) {
 
-                    PlayerDataStorageUtil.saveItemData(player, item, page, slot);
+                    playerDataStorageUtil.saveItemData(player, item, page, slot);
                 }
             }
 
             PlayerMessage.sendMessage(player, "&a你的仓库物品已保存！");
 
-            PlayerAttribute.addAttributeToPlayer(player);
+            PlayerAttribute playerAttribute = plugin.getPlayerAttribute();
+            playerAttribute.addAttributeToPlayer(player);
 
             PlayerMessage.sendMessage(player, "&6你的属性已更新！");
         }

@@ -22,11 +22,11 @@ import java.util.List;
 import java.util.Map;
 
 public class AttributeGuiManager {
-    private static BestMasterGatherer plugin;
-    private final static Map<String, FileConfiguration> guiConfigs = new HashMap<>();
+    private BestMasterGatherer plugin;
+    private final Map<String, FileConfiguration> guiConfigs = new HashMap<>();
 
-    public static void init(BestMasterGatherer pluginInstance) {
-        plugin = pluginInstance;
+    public AttributeGuiManager(BestMasterGatherer plugin) {
+        this.plugin = plugin;
         File pluginFolderPath = plugin.getDataFolderPath();
         loadGuiConfigs(pluginFolderPath.getAbsolutePath());
     }
@@ -34,7 +34,7 @@ public class AttributeGuiManager {
     /**
      * 加载所有 GUI 配置文件
      */
-    private static void loadGuiConfigs(String pluginFolderPath) {
+    private void loadGuiConfigs(String pluginFolderPath) {
         File guiFolder = new File(pluginFolderPath, "attributeGUI");
         if (guiFolder.exists() && guiFolder.isDirectory()) {
             File[] guiFiles = guiFolder.listFiles((dir, name) -> name.endsWith(".yml"));
@@ -48,7 +48,7 @@ public class AttributeGuiManager {
         }
     }
 
-    public static Map<String, FileConfiguration> getGuiConfigs() {
+    public Map<String, FileConfiguration> getGuiConfigs() {
         return guiConfigs;
     }
 
@@ -58,7 +58,7 @@ public class AttributeGuiManager {
      * @param player
      * @param guiId
      */
-    public static void openGui(Player player, String guiId) {
+    public void openGui(Player player, String guiId) {
         FileConfiguration config = guiConfigs.get(guiId);
         if (config == null) {
             PlayerMessage.sendMessage(player, "&c找不到对应的 GUI 配置文件！");
@@ -71,7 +71,9 @@ public class AttributeGuiManager {
 
         Inventory inventory = Bukkit.createInventory(null, 9 * (!layout.isEmpty() ? layout.size() : 1 ), guiName);
 
-        Map<String, AttributeGuiItem> itemMap = AttributeGuiItemUtil.loadItems(CommonConstant.ATTRIBUTE_FOLDER, guiId);
+        AttributeGuiItemUtil attributeGuiItemUtil = plugin.getAttributeGuiItemUtil();
+
+        Map<String, AttributeGuiItem> itemMap = attributeGuiItemUtil.loadItems(CommonConstant.ATTRIBUTE_FOLDER, guiId);
 
         for (int row = 0; row < layout.size(); row++) {
             String line = layout.get(row);
@@ -101,9 +103,9 @@ public class AttributeGuiManager {
                         continue;
                     }
 
-                    int count = AttributeGuiItemUtil.getCollectedCount(player, attributeItem);
+                    int count = attributeGuiItemUtil.getCollectedCount(player, attributeItem);
 
-                    ItemStack itemStack = AttributeGuiItemUtil.createGuiItemFromAttributeItem(attributeItem, count);
+                    ItemStack itemStack = attributeGuiItemUtil.createGuiItemFromAttributeItem(attributeItem, count);
 
                     int slot = row * 9 + col;
 

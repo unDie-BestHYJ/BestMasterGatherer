@@ -24,11 +24,11 @@ import java.util.Map;
 
 public class PlayerDataStorageUtil {
 
-    private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    private static BestMasterGatherer plugin;
+    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    private BestMasterGatherer plugin;
 
-    public static void init(BestMasterGatherer instance) {
-        plugin = instance;
+    public PlayerDataStorageUtil(BestMasterGatherer plugin) {
+        this.plugin = plugin;
     }
 
     /**
@@ -40,7 +40,7 @@ public class PlayerDataStorageUtil {
      * @param page    页数
      * @param slotId  槽位 ID
      */
-    public static void saveItemData(Player player, ItemStack item, int page, int slotId) {
+    public void saveItemData(Player player, ItemStack item, int page, int slotId) {
         if (item == null || !item.hasItemMeta()) return; // 检查 item 是否为 null 或没有 Meta
 
         Bukkit.getLogger().info("saveItemData " + item.getItemMeta().getDisplayName());
@@ -58,7 +58,8 @@ public class PlayerDataStorageUtil {
         inventoryData.put(slotId, itemData); // 使用传入的槽位ID
 
         // 保存物品数据到指定页的 JSON 文件
-        PlayerDataStorageUtil.saveItemData(player.getName(), page, inventoryData);
+        PlayerDataStorageUtil playerDataStorageUtil = plugin.getPlayerDataStorageUtil();
+        playerDataStorageUtil.saveItemData(player.getName(), page, inventoryData);
     }
 
     /**
@@ -67,7 +68,7 @@ public class PlayerDataStorageUtil {
      * @param item
      * @return
      */
-    private static String getNbtData(ItemStack item) {
+    private String getNbtData(ItemStack item) {
         net.minecraft.server.v1_12_R1.ItemStack nmsItem = CraftItemStack.asNMSCopy(item);
         net.minecraft.server.v1_12_R1.NBTTagCompound tag = nmsItem.getTag();
 
@@ -93,7 +94,7 @@ public class PlayerDataStorageUtil {
      * @param page
      * @param newInventoryData
      */
-    private static void saveItemData(String playerName, int page, Map<Integer, Map<String, Object>> newInventoryData) {
+    private void saveItemData(String playerName, int page, Map<Integer, Map<String, Object>> newInventoryData) {
         // 定义文件路径，以玩家名为文件夹，以页数作为文件名
         File file = new File(plugin.getDataFolderPath() + File.separator + "storage" + File.separator + playerName, "page_" + page + ".json");
         file.getParentFile().mkdirs(); // 如果目录不存在则创建
@@ -127,7 +128,7 @@ public class PlayerDataStorageUtil {
      * @param page 页数
      * @return 如果文件成功删除返回true，否则返回false
      */
-    public static boolean deleteItemData(String playerName, int page) {
+    public boolean deleteItemData(String playerName, int page) {
         File file = new File(plugin.getDataFolderPath() + File.separator + "storage" + File.separator + playerName, "page_" + page + ".json");
         return file.exists() && file.delete();
     }
@@ -139,7 +140,7 @@ public class PlayerDataStorageUtil {
      * @param page 页数
      * @return 返回一个Map，key为槽位ID，value为物品的详细信息
      */
-    public static Map<String, Map<String, Object>> readItemData(String playerName, int page) {
+    public Map<String, Map<String, Object>> readItemData(String playerName, int page) {
         File file = new File(plugin.getDataFolderPath() + File.separator + "storage" + File.separator + playerName, "page_" + page + ".json");
         if (!file.exists()) {
             return null;
@@ -159,7 +160,7 @@ public class PlayerDataStorageUtil {
      * @param playerName
      * @return
      */
-    public static Map<String, Integer> readItems(String playerName) {
+    public Map<String, Integer> readItems(String playerName) {
         File playerFolder = new File(plugin.getDataFolderPath() + File.separator + "storage" + File.separator + playerName);
         if (!playerFolder.exists() || !playerFolder.isDirectory()) {
             return null; // 如果玩家文件夹不存在，则返回 null
@@ -230,7 +231,7 @@ public class PlayerDataStorageUtil {
      * @param item
      * @param nbtData
      */
-    public static void applyNbtData(ItemStack item, String nbtData) {
+    public void applyNbtData(ItemStack item, String nbtData) {
         try {
             // 获取 NMS 版本的 ItemStack
             net.minecraft.server.v1_12_R1.ItemStack nmsItem = CraftItemStack.asNMSCopy(item);
@@ -265,7 +266,7 @@ public class PlayerDataStorageUtil {
      * @param guiId GUI 的 ID
      * @return 已填充的槽位列表
      */
-    public static List<Integer> getFilledSlots(String guiId, String guiFolder) {
+    public List<Integer> getFilledSlots(String guiId, String guiFolder) {
         List<Integer> filledSlots = new ArrayList<>();
         File guiFile = new File(plugin.getDataFolderPath(), guiFolder + "/" + guiId + ".yml");
 

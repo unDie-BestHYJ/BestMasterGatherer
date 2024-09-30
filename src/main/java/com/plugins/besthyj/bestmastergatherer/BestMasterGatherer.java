@@ -2,7 +2,9 @@ package com.plugins.besthyj.bestmastergatherer;
 
 import com.plugins.besthyj.bestmastergatherer.commands.BestMasterGathererCommand;
 import com.plugins.besthyj.bestmastergatherer.listener.attributeGui.AttributeGuiListener;
+import com.plugins.besthyj.bestmastergatherer.listener.attributeGui.PlayerJoinListener;
 import com.plugins.besthyj.bestmastergatherer.manager.attributeGui.AttributeGuiManager;
+import com.plugins.besthyj.bestmastergatherer.manager.attributeGui.PlayerAttribute;
 import com.plugins.besthyj.bestmastergatherer.manager.collectGui.CollectGuiManager;
 import com.plugins.besthyj.bestmastergatherer.listener.collectGui.CollectGuiListener;
 import com.plugins.besthyj.bestmastergatherer.util.GUIFileUtil;
@@ -18,11 +20,38 @@ public class BestMasterGatherer extends JavaPlugin {
     private File dataFolder;
     private CollectGuiListener collectGuiListener;
     private AttributeGuiListener attributeGuiListener;
+    private PlayerJoinListener playerJoinListener;
 
+    private AttributeGuiItemUtil attributeGuiItemUtil;
+    private PlayerDataStorageUtil playerDataStorageUtil;
     private GUIFileUtil guiFileUtil;
+
+    private CollectGuiManager collectGuiManager;
+    private AttributeGuiManager attributeGuiManager;
+    private PlayerAttribute playerAttribute;
+
+    public AttributeGuiItemUtil getAttributeGuiItemUtil() {
+        return attributeGuiItemUtil;
+    }
+
+    public PlayerDataStorageUtil getPlayerDataStorageUtil() {
+        return playerDataStorageUtil;
+    }
 
     public GUIFileUtil getGuiFileUtil() {
         return guiFileUtil;
+    }
+
+    public CollectGuiManager getCollectGuiManager() {
+        return collectGuiManager;
+    }
+
+    public AttributeGuiManager getAttributeGuiManager() {
+        return attributeGuiManager;
+    }
+
+    public PlayerAttribute getPlayerAttribute() {
+        return playerAttribute;
     }
 
     @Override
@@ -39,14 +68,15 @@ public class BestMasterGatherer extends JavaPlugin {
             storageFolder.mkdir();
         }
 
-        // manager
-        CollectGuiManager.init(this);
-        AttributeGuiManager.init(this);
-
         // util
-        AttributeGuiItemUtil.init(this);
-        PlayerDataStorageUtil.init(this);
+        attributeGuiItemUtil = new AttributeGuiItemUtil(this);
+        playerDataStorageUtil = new PlayerDataStorageUtil(this);
         guiFileUtil = new GUIFileUtil(this);
+
+        // manager
+        collectGuiManager = new CollectGuiManager(this);
+        attributeGuiManager = new AttributeGuiManager(this);
+        playerAttribute = new PlayerAttribute(this);
 
         // command
         this.getCommand("BestMasterGatherer").setExecutor(new BestMasterGathererCommand(this));
@@ -56,13 +86,15 @@ public class BestMasterGatherer extends JavaPlugin {
         getServer().getPluginManager().registerEvents(collectGuiListener, this);
         attributeGuiListener = new AttributeGuiListener(this);
         getServer().getPluginManager().registerEvents(attributeGuiListener, this);
+        playerJoinListener = new PlayerJoinListener(this);
+        getServer().getPluginManager().registerEvents(playerJoinListener, this);
 
         getLogger().info("BestMasterGatherer 插件已启用！");
     }
 
     @Override
     public void onDisable() {
-        clearResources();
+//        clearResources();
 
         getLogger().info("BestMasterGatherer 插件已禁用！");
     }
@@ -114,7 +146,7 @@ public class BestMasterGatherer extends JavaPlugin {
      * 清理所有资源
      */
     public void clearResources() {
-        CollectGuiManager.clearResources();
+        collectGuiManager.clearResources();
 
         this.getCommand("BestMasterGatherer").setExecutor(null);
 
