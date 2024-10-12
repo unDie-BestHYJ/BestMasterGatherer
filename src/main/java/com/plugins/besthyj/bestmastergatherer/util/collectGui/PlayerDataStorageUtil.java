@@ -43,7 +43,7 @@ public class PlayerDataStorageUtil {
     public void saveItemData(Player player, ItemStack item, int page, int slotId) {
         if (item == null || !item.hasItemMeta()) return; // 检查 item 是否为 null 或没有 Meta
 
-        Bukkit.getLogger().info("saveItemData " + item.getItemMeta().getDisplayName());
+//        Bukkit.getLogger().info("saveItemData " + item.getItemMeta().getDisplayName());
 
         // 创建一个存储物品数据的 Map，key 为槽位ID，value 为物品详细信息
         Map<String, Object> itemData = new HashMap<>();

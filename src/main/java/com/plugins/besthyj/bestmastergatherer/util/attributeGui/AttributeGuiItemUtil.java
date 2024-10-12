@@ -186,7 +186,7 @@ public class AttributeGuiItemUtil {
         itemMeta.setLore(attrLores);
         itemStack.setItemMeta(itemMeta);
 
-        Bukkit.getLogger().info(itemStack.toString());
+//        Bukkit.getLogger().info(itemStack.toString());
 
         return itemStack;
     }

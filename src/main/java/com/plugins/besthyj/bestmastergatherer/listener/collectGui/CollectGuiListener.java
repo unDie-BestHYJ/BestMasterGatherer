@@ -7,6 +7,7 @@ import com.plugins.besthyj.bestmastergatherer.util.ColorUtil;
 import com.plugins.besthyj.bestmastergatherer.util.collectGui.PlayerDataStorageUtil;
 import com.plugins.besthyj.bestmastergatherer.model.collectGui.PaginatedInventoryHolder;
 import com.plugins.besthyj.bestmastergatherer.util.PlayerMessage;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -21,6 +22,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class CollectGuiListener implements Listener {
 
@@ -106,25 +108,30 @@ public class CollectGuiListener implements Listener {
 
             int page = ((PaginatedInventoryHolder) closedInventory.getHolder()).getCurrentPage();
 
-            // 删除旧文件
-            PlayerDataStorageUtil playerDataStorageUtil = plugin.getPlayerDataStorageUtil();
-            playerDataStorageUtil.deleteItemData(player.getName(), page);
+            CompletableFuture.runAsync(() -> {
+                PlayerDataStorageUtil playerDataStorageUtil = plugin.getPlayerDataStorageUtil();
+                playerDataStorageUtil.deleteItemData(player.getName(), page);
 
-            for (int slot = 0; slot < closedInventory.getSize(); slot++) {
-                if (playerDataStorageUtil.getFilledSlots(guiId, "collectGUI").contains(slot)) {continue;}
-                ItemStack item = closedInventory.getItem(slot);
-                if (item != null) {
-
-                    playerDataStorageUtil.saveItemData(player, item, page, slot);
+                for (int slot = 0; slot < closedInventory.getSize(); slot++) {
+                    if (playerDataStorageUtil.getFilledSlots(guiId, "collectGUI").contains(slot)) {
+                        continue;
+                    }
+                    ItemStack item = closedInventory.getItem(slot);
+                    if (item != null) {
+                        playerDataStorageUtil.saveItemData(player, item, page, slot);
+                    }
                 }
-            }
 
-            PlayerMessage.sendMessage(player, "&a你的仓库物品已保存！");
+                PlayerMessage.sendMessage(player, "&a你的仓库物品已保存！");
+            }).thenRun(() -> {
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    PlayerAttribute playerAttribute = plugin.getPlayerAttribute();
+                    playerAttribute.addAttributeToPlayer(player);
 
-            PlayerAttribute playerAttribute = plugin.getPlayerAttribute();
-            playerAttribute.addAttributeToPlayer(player);
+                    PlayerMessage.sendMessage(player, "&6你的属性已更新！");
+                });
+            });
 
-            PlayerMessage.sendMessage(player, "&6你的属性已更新！");
         }
     }
 
