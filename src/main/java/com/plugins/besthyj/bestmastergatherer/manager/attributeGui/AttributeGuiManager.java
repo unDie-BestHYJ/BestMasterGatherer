@@ -22,11 +22,12 @@ import java.util.List;
 import java.util.Map;
 
 public class AttributeGuiManager {
-    private BestMasterGatherer plugin;
-    private final Map<String, FileConfiguration> guiConfigs = new HashMap<>();
+    private final BestMasterGatherer plugin;
+    private final Map<String, FileConfiguration> guiConfigs;
 
     public AttributeGuiManager(BestMasterGatherer plugin) {
         this.plugin = plugin;
+        this.guiConfigs = new HashMap<>();
         File pluginFolderPath = plugin.getDataFolderPath();
         loadGuiConfigs(pluginFolderPath.getAbsolutePath());
     }
@@ -111,5 +112,13 @@ public class AttributeGuiManager {
         }
 
         player.openInventory(inventory);
+    }
+
+    /**
+     * 清理所有资源
+     */
+    public void clearResources() {
+        // 清空 GUI 配置
+        guiConfigs.clear();
     }
 }

@@ -5,6 +5,7 @@ import com.plugins.besthyj.bestmastergatherer.manager.attributeGui.AttributeGuiM
 import com.plugins.besthyj.bestmastergatherer.manager.collectGui.CollectGuiManager;
 import com.plugins.besthyj.bestmastergatherer.util.CommandUsageUtil;
 import com.plugins.besthyj.bestmastergatherer.util.PlayerMessage;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -29,6 +30,7 @@ public class BestMasterGathererCommand implements CommandExecutor {
         }
 
         String subCommand = args[0].toLowerCase();
+//        Bukkit.getLogger().info(subCommand);
         String[] subArgs = Arrays.copyOfRange(args, 1, args.length);
         
         if (subCommand.equalsIgnoreCase("collect")) {

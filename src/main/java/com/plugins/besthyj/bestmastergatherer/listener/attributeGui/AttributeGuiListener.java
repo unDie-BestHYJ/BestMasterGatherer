@@ -24,10 +24,11 @@ import java.util.Map;
 
 public class AttributeGuiListener implements Listener {
     private final BestMasterGatherer plugin;
-    private final Map<String, String> guiNames = new HashMap<>(); // 保存 GUI 的 ID 和名称映射
+    private final Map<String, String> guiNames;
 
     public AttributeGuiListener(BestMasterGatherer plugin) {
         this.plugin = plugin;
+        this.guiNames = new HashMap<>();
         loadGUINames();
     }
 
@@ -90,5 +91,12 @@ public class AttributeGuiListener implements Listener {
             playerAttribute.addAttributeToPlayer(player);
             PlayerMessage.sendMessage(player, "&6你的属性已更新！");
         }
+    }
+
+    /**
+     * 清理所有资源
+     */
+    public void clearResources() {
+        guiNames.clear();
     }
 }

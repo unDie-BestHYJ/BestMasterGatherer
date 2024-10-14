@@ -10,7 +10,7 @@ public class CommandUsageUtil {
      */
     public static void showHelpMessage(CommandSender sender) {
         String[] helpMessages = {
-                "&a----- BestInventory 帮助 -----",
+                "&a----- BestMasterGatherer 帮助 -----",
                 "&6/bestmastergatherer collect opengui <guiId> - 打开指定的收集界面",
                 "&6/bestmastergatherer attribute opengui <guiId> - 打开指定的属性界面",
                 "&6/bestmastergatherer reload - 重新加载插件配置",

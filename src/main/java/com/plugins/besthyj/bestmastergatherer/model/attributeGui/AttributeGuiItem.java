@@ -56,7 +56,7 @@ public class AttributeGuiItem {
 
     public List<String> getLoresList() {
         return loresList.stream()
-                .map(ColorUtil::translateColorCode) // 处理颜色代码
+                .map(ColorUtil::translateColorCode)
                 .collect(Collectors.toList());
     }
 

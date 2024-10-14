@@ -142,9 +142,9 @@ public class CollectGuiListener implements Listener {
         String inventoryTitle = view.getTitle();
 
         // 检查是否拖动的是自定义 GUI
-        if (guiNames.containsKey(inventoryTitle)) {  // 只用带颜色的标题进行匹配
+        if (guiNames.containsKey(inventoryTitle)) {
             if (draggedInventory.equals(view.getTopInventory())) {
-                event.setCancelled(true); // 禁止拖拽操作
+                event.setCancelled(true);
             }
         }
     }
@@ -156,14 +156,13 @@ public class CollectGuiListener implements Listener {
      * @return GUI ID，如果不存在返回 null
      */
     public String getGuiIdByName(String guiName) {
-        return guiNames.get(guiName); // 从 Map 中查找对应的 GUI ID
+        return guiNames.get(guiName);
     }
 
     /**
      * 清理所有资源
      */
     public void clearResources() {
-        guiNames.clear(); // 清空保存的 GUI 名称映射
-    }
+        guiNames.clear();
 
 }

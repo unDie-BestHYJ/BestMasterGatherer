@@ -18,8 +18,13 @@ public class PaginatedInventoryHolder implements InventoryHolder {
         return currentPage;
     }
 
+    /**
+     * 实现 InventoryHolder 必须有这个方法
+     *
+     * @return
+     */
     @Override
     public Inventory getInventory() {
-        return null; // 实现 InventoryHolder 必须有这个方法
+        return null;
     }
 }

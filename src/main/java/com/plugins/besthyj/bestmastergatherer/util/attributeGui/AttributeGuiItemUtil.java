@@ -21,7 +21,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class AttributeGuiItemUtil {
-    private BestMasterGatherer plugin;
+    private final BestMasterGatherer plugin;
 
     public AttributeGuiItemUtil(BestMasterGatherer plugin) {
         this.plugin = plugin;
@@ -194,9 +194,14 @@ public class AttributeGuiItemUtil {
     /**
      * 获取 mm物品名 集合
      *
+     *
+     *
      * @param item
      * @return
      */
+    // TODO
+    // 这两个方法都会读取玩家的物品数据并检查是否与 MythicMobs 的物品集合匹配。建议缓存这些集合，避免频繁读取和处理。特别是在高并发的情况下，频繁从文件中读取和操作会导致性能瓶颈。
+    // 建议：可以考虑为每个玩家缓存 displaySet 和 collectedDisplaySet，只在玩家数据更新或物品发生变化时重新生成。
     public LinkedHashSet<String> getDisplaySet(AttributeGuiItem item) {
         List<String> mmItems = item.getMMItemsList();
         if (mmItems == null || mmItems.isEmpty()) {

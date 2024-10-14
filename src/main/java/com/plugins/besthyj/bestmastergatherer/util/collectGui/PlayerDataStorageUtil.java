@@ -24,11 +24,12 @@ import java.util.Map;
 
 public class PlayerDataStorageUtil {
 
-    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    private BestMasterGatherer plugin;
+    private final Gson gson;
+    private final BestMasterGatherer plugin;
 
     public PlayerDataStorageUtil(BestMasterGatherer plugin) {
         this.plugin = plugin;
+        gson = new GsonBuilder().setPrettyPrinting().create();
     }
 
     /**

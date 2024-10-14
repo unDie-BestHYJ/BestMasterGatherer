@@ -7,9 +7,9 @@ import com.plugins.besthyj.bestmastergatherer.manager.attributeGui.AttributeGuiM
 import com.plugins.besthyj.bestmastergatherer.manager.attributeGui.PlayerAttribute;
 import com.plugins.besthyj.bestmastergatherer.manager.collectGui.CollectGuiManager;
 import com.plugins.besthyj.bestmastergatherer.listener.collectGui.CollectGuiListener;
-import com.plugins.besthyj.bestmastergatherer.util.GUIFileUtil;
 import com.plugins.besthyj.bestmastergatherer.util.attributeGui.AttributeGuiItemUtil;
 import com.plugins.besthyj.bestmastergatherer.util.collectGui.PlayerDataStorageUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -24,7 +24,6 @@ public class BestMasterGatherer extends JavaPlugin {
 
     private AttributeGuiItemUtil attributeGuiItemUtil;
     private PlayerDataStorageUtil playerDataStorageUtil;
-    private GUIFileUtil guiFileUtil;
 
     private CollectGuiManager collectGuiManager;
     private AttributeGuiManager attributeGuiManager;
@@ -36,10 +35,6 @@ public class BestMasterGatherer extends JavaPlugin {
 
     public PlayerDataStorageUtil getPlayerDataStorageUtil() {
         return playerDataStorageUtil;
-    }
-
-    public GUIFileUtil getGuiFileUtil() {
-        return guiFileUtil;
     }
 
     public CollectGuiManager getCollectGuiManager() {
@@ -63,15 +58,9 @@ public class BestMasterGatherer extends JavaPlugin {
         // 文件初始化
         ensureGuiFilesExist(dataFolder);
 
-        File storageFolder = new File(dataFolder, "storage");
-        if (!storageFolder.exists()) {
-            storageFolder.mkdir();
-        }
-
         // util
         attributeGuiItemUtil = new AttributeGuiItemUtil(this);
         playerDataStorageUtil = new PlayerDataStorageUtil(this);
-        guiFileUtil = new GUIFileUtil(this);
 
         // manager
         collectGuiManager = new CollectGuiManager(this);
@@ -94,7 +83,7 @@ public class BestMasterGatherer extends JavaPlugin {
 
     @Override
     public void onDisable() {
-//        clearResources();
+        clearResources();
 
         getLogger().info("BestMasterGatherer 插件已禁用！");
     }
@@ -128,17 +117,22 @@ public class BestMasterGatherer extends JavaPlugin {
     public void ensureGuiFilesExist(File dataFolder) {
         createFolderAndCopyDefault(dataFolder, "collectGUI", "示例gui.yml");
         createFolderAndCopyDefault(dataFolder, "attributeGUI", "示例gui.yml");
+        File storageFolder = new File(dataFolder, "storage");
+        if (!storageFolder.exists()) {
+            storageFolder.mkdir();
+        }
+//        Bukkit.getLogger().info("文件初始化完成");
     }
 
     private void createFolderAndCopyDefault(File dataFolder, String folderName, String fileName) {
         File folder = new File(dataFolder, folderName);
         if (!folder.exists()) {
-            folder.mkdirs(); // 使用 mkdirs 以确保创建所有父文件夹
+            folder.mkdirs();
         }
 
         File exampleFile = new File(folder, fileName);
         if (!exampleFile.exists()) {
-            saveResource(folderName + "/" + fileName, false); // 保存嵌入资源
+            saveResource(folderName + "/" + fileName, false);
         }
     }
 
@@ -146,11 +140,13 @@ public class BestMasterGatherer extends JavaPlugin {
      * 清理所有资源
      */
     public void clearResources() {
-        collectGuiManager.clearResources();
-
+        HandlerList.unregisterAll(this);
         this.getCommand("BestMasterGatherer").setExecutor(null);
+        this.getServer().getScheduler().cancelTasks(this);
 
-        HandlerList.unregisterAll(collectGuiListener);
+        collectGuiManager.clearResources();
         collectGuiListener.clearResources();
+        attributeGuiManager.clearResources();
+        attributeGuiListener.clearResources();
     }
 }

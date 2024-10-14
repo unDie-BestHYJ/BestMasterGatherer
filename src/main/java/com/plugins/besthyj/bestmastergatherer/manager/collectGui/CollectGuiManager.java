@@ -22,14 +22,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class CollectGuiManager {
 
-    private BestMasterGatherer plugin;
-    private final Map<String, FileConfiguration> guiConfigs = new HashMap<>();
+    private final BestMasterGatherer plugin;
+    private final Map<String, FileConfiguration> guiConfigs;
 
     public CollectGuiManager(BestMasterGatherer plugin) {
         this.plugin = plugin;
+        guiConfigs = new HashMap<>();
         File pluginFolderPath = plugin.getDataFolderPath();
         loadGuiConfigs(pluginFolderPath.getAbsolutePath());
     }
@@ -291,8 +293,14 @@ public class CollectGuiManager {
             // 处理“上一页”
             int currentPage = getCurrentPage(event);
             if (currentPage > 1) {
-                saveCurrentPageData(player, guiId, currentPage);
-                updateGui((Player) event.getWhoClicked(), guiId, currentPage - 1);
+                CompletableFuture.runAsync(() -> {
+                    saveCurrentPageData(player, guiId, currentPage);
+                }).thenRun(() -> {
+                    Bukkit.getScheduler().runTask(plugin, () -> {
+                        updateGui((Player) event.getWhoClicked(), guiId, currentPage - 1);
+                    });
+                });
+
             }
         } else if (clickedItemName.equals(ColorUtil.translateColorCode(guiConfigs.get(guiId).getString("items.N.Display")))) {
             // 处理“下一页”
@@ -300,8 +308,14 @@ public class CollectGuiManager {
             int totalPages = guiConfigs.get(guiId).getInt("pages");
 
             if (currentPage < totalPages) {
-                saveCurrentPageData(player, guiId, currentPage);
-                updateGui((Player) event.getWhoClicked(), guiId, currentPage + 1);
+                CompletableFuture.runAsync(() -> {
+                    saveCurrentPageData(player, guiId, currentPage);
+                    Bukkit.getLogger().info("下一页 数据保存 多线程处理完成");
+                }).thenRun(() -> {
+                    Bukkit.getScheduler().runTask(plugin, () -> {
+                        updateGui((Player) event.getWhoClicked(), guiId, currentPage + 1);
+                    });
+                });
             }
         }
     }
@@ -359,6 +373,5 @@ public class CollectGuiManager {
     public void clearResources() {
         // 清空 GUI 配置
         guiConfigs.clear();
-        plugin = null; // 清除插件引用
     }
 }
