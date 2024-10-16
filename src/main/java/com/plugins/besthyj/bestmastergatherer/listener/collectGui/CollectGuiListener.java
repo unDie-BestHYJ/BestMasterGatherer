@@ -24,6 +24,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class CollectGuiListener implements Listener {
 
@@ -109,11 +110,16 @@ public class CollectGuiListener implements Listener {
                 ItemStack clickedItem = event.getCurrentItem();
                 if (clickedItem != null && clickedItem.getType() != Material.AIR) {
                     if (player.getInventory().firstEmpty() != -1) {
-                        player.getInventory().addItem(clickedItem);
                         clickedInventory.setItem(event.getSlot(), null);
                         int page = ((PaginatedInventoryHolder) clickedInventory.getHolder()).getCurrentPage();
-                        playerDataStorageUtil.deleteItemData(player.getName(), page, event.getSlot());
-                        PlayerMessage.sendMessage(player, CommonConstant.PLUGIN_NAME_PREFIX + "&a物品已放入背包！");
+                        CompletableFuture.runAsync(() -> {
+                            playerDataStorageUtil.deleteItemData(player.getName(), page, event.getSlot());
+                        }).thenRun(() -> {
+                            Bukkit.getScheduler().runTask(plugin, () -> {
+                                player.getInventory().addItem(clickedItem);
+                                PlayerMessage.sendMessage(player, CommonConstant.PLUGIN_NAME_PREFIX + "&a物品已放入背包！");
+                            });
+                        });
                     } else {
                         PlayerMessage.sendMessage(player, CommonConstant.PLUGIN_NAME_PREFIX + "&c背包已满，请先清理背包！");
                     }
@@ -125,11 +131,16 @@ public class CollectGuiListener implements Listener {
                     int emptySlot = topInventory.firstEmpty();
                     if (emptySlot != -1) {
                         event.setCancelled(true);
-                        topInventory.setItem(emptySlot, clickedItem);
-                        player.getInventory().setItem(event.getSlot(), null);
                         int page = ((PaginatedInventoryHolder) topInventory.getHolder()).getCurrentPage();
-                        playerDataStorageUtil.saveItemData(player, clickedItem, page, emptySlot);
-                        PlayerMessage.sendMessage(player, CommonConstant.PLUGIN_NAME_PREFIX + "&a物品已移入仓库！");
+                        player.getInventory().setItem(event.getSlot(), null);
+                        CompletableFuture.runAsync(() -> {
+                            playerDataStorageUtil.saveItemData(player, clickedItem, page, emptySlot);
+                        }).thenRun(() -> {
+                            Bukkit.getScheduler().runTask(plugin, () -> {
+                                topInventory.setItem(emptySlot, clickedItem);
+                                PlayerMessage.sendMessage(player, CommonConstant.PLUGIN_NAME_PREFIX + "&a物品已移入仓库！");
+                            });
+                        });
                     } else {
                         event.setCancelled(true);
                         PlayerMessage.sendMessage(player, CommonConstant.PLUGIN_NAME_PREFIX + "&c该页仓库已满，无法放入更多物品！");
@@ -184,14 +195,19 @@ public class CollectGuiListener implements Listener {
     public void onInventoryDrag(InventoryDragEvent event) {
         InventoryView view = event.getView();
         Inventory draggedInventory = event.getInventory();
-
-        // 获取带颜色的界面标题
         String inventoryTitle = view.getTitle();
 
-        // 检查是否拖动的是自定义 GUI
         if (guiNames.containsKey(inventoryTitle)) {
             if (draggedInventory.equals(view.getTopInventory())) {
                 event.setCancelled(true);
+                event.getWhoClicked().setItemOnCursor(null);
+                return;
+            }
+
+            if (draggedInventory.equals(event.getWhoClicked().getInventory())) {
+                event.setCancelled(true);
+                event.getWhoClicked().setItemOnCursor(null);
+                return;
             }
         }
     }

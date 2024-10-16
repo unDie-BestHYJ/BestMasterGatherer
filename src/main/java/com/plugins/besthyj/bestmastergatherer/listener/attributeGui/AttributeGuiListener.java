@@ -43,10 +43,8 @@ public class AttributeGuiListener implements Listener {
                 for (File guiFile : guiFiles) {
                     FileConfiguration config = YamlConfiguration.loadConfiguration(guiFile);
                     String guiId = guiFile.getName().replace(".yml", "");
-
                     String guiName = config.getString("guiName", guiId);
                     String translatedGuiName = ColorUtil.translateColorCode(guiName);
-
                     guiNames.put(translatedGuiName, guiId);
                 }
             }
@@ -60,14 +58,11 @@ public class AttributeGuiListener implements Listener {
      */
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-
         InventoryView view = event.getView();
         Inventory clickedInventory = event.getClickedInventory();
-
         String inventoryTitle = view.getTitle();
 
         if (guiNames.containsKey(inventoryTitle)) {
-
             if (clickedInventory != null && clickedInventory.equals(view.getTopInventory())) {
                 event.setCancelled(true);
             }
@@ -84,12 +79,11 @@ public class AttributeGuiListener implements Listener {
         Player player = (Player) event.getPlayer();
         InventoryView view = event.getView();
         String inventoryTitle = view.getTitle();
-
         PlayerAttribute playerAttribute = plugin.getPlayerAttribute();
 
         if (guiNames.containsKey(inventoryTitle)) {
             playerAttribute.addAttributeToPlayer(player);
-            PlayerMessage.sendMessage(player, "&6你的属性已更新！");
+            PlayerMessage.sendMessage(player, CommonConstant.PLUGIN_NAME_PREFIX + "&6你的属性已更新！");
         }
     }
 

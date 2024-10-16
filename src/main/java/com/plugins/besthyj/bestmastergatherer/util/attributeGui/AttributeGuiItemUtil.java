@@ -43,23 +43,22 @@ public class AttributeGuiItemUtil {
             if (file.getName().endsWith(".yml") && file.getName().replace(".yml", "").equals(guiId)) {
                 FileConfiguration config = YamlConfiguration.loadConfiguration(file);
 
-                // 获取 items 部分
                 if (config.contains("items")) {
                     for (String itemId : config.getConfigurationSection("items").getKeys(false)) {
                         AttributeGuiItem item = new AttributeGuiItem();
                         item.setItemId(itemId);
 
-                        item.setItemTypeId(config.getInt("items." + itemId + ".Id", 0)); // 默认值为 0
-                        item.setItemTypeData(config.getInt("items." + itemId + ".Data", 0)); // 默认值为 0
+                        item.setItemTypeId(config.getInt("items." + itemId + ".Id", 0));
+                        item.setItemTypeData(config.getInt("items." + itemId + ".Data", 0));
                         item.setItemName(config.getString("items." + itemId + ".Display", ""));
 
                         List<String> lores = config.getStringList("items." + itemId + ".Lores");
-                        item.setLoresList(lores.isEmpty() ? Arrays.asList() : lores); // 空列表
+                        item.setLoresList(lores.isEmpty() ? Arrays.asList() : lores);
 
                         List<String> mmItems = config.getStringList("items." + itemId + ".mmItems");
-                        item.setMmItemsList(mmItems.isEmpty() ? Arrays.asList() : mmItems); // 空列表
+//                        Bukkit.getLogger().info(itemId);
+                        item.setMmItemsList(mmItems.isEmpty() ? Arrays.asList() : mmItems);
 
-                        // 设置 attributes
                         Map<Integer, List<String>> attributesMap = new HashMap<>();
                         if (config.contains("items." + itemId + ".attributes")) {
                             for (String attrKey : config.getConfigurationSection("items." + itemId + ".attributes").getKeys(false)) {
@@ -89,7 +88,6 @@ public class AttributeGuiItemUtil {
 
         ItemStack itemStack = new ItemStack(Material.getMaterial(id), 1, (short) data);
         ItemMeta meta = itemStack.getItemMeta();
-
         String displayName = ColorUtil.translateColorCode(attributeItem.getItemName());
         meta.setDisplayName(displayName);
 
@@ -112,24 +110,20 @@ public class AttributeGuiItemUtil {
 
             Pattern usefulPattern = Pattern.compile(VariableConstant.IS_USEFUL_REGEX);
             Matcher usefulMatcher = usefulPattern.matcher(lore);
-
             StringBuffer updatedLore = new StringBuffer();
 
             while (usefulMatcher.find()) {
                 int number = Integer.parseInt(usefulMatcher.group(1));
-
                 String replacement = (count >= number) ? CommonConstant.COLLECTED : CommonConstant.UNCOLLECTED;
-
                 usefulMatcher.appendReplacement(updatedLore, replacement);
             }
             usefulMatcher.appendTail(updatedLore);
-
             translatedLores.add(ColorUtil.translateColorCode(updatedLore.toString()));
         }
 
         meta.setLore(translatedLores);
-
         itemStack.setItemMeta(meta);
+
         return itemStack;
     }
 
@@ -148,7 +142,6 @@ public class AttributeGuiItemUtil {
         ItemMeta meta = itemStack.getItemMeta();
 
         String displayName = ColorUtil.translateColorCode(config.getString("items." + itemId + ".Display"));
-
         meta.setDisplayName(displayName);
 
         List<String> lores = config.getStringList("items." + itemId + ".Lores");
@@ -157,8 +150,8 @@ public class AttributeGuiItemUtil {
             translatedLores.add(ColorUtil.translateColorCode(lore));
         }
         meta.setLore(translatedLores);
-
         itemStack.setItemMeta(meta);
+
         return itemStack;
     }
 
@@ -171,9 +164,7 @@ public class AttributeGuiItemUtil {
 
         String displayName = ColorUtil.translateColorCode(attributeItem.getItemName());
         itemMeta.setDisplayName(displayName);
-
         Map<Integer, List<String>> attributesMap = attributeItem.getAttributesMap();
-
         List<String> attrLores = new ArrayList<>();
 
         for (Map.Entry<Integer, List<String>> entry : attributesMap.entrySet()) {
@@ -189,8 +180,6 @@ public class AttributeGuiItemUtil {
 
         itemMeta.setLore(attrLores);
         itemStack.setItemMeta(itemMeta);
-
-//        Bukkit.getLogger().info(itemStack.toString());
 
         return itemStack;
     }
@@ -208,8 +197,10 @@ public class AttributeGuiItemUtil {
         if (mythicItemCache.containsKey(itemId)) {
             return mythicItemCache.get(itemId);
         }
+//        Bukkit.getLogger().info(itemId);
 
         List<String> mmItems = item.getMMItemsList();
+//        mmItems.stream().forEach(element -> Bukkit.getLogger().info(element));
         if (mmItems == null || mmItems.isEmpty()) {
             return Collections.emptySet();
         }
@@ -233,6 +224,7 @@ public class AttributeGuiItemUtil {
      */
     public Integer getCollectedCount(Player player, AttributeGuiItem attributeGuiItem) {
         Set<String> displaySet = getDisplaySet(attributeGuiItem);
+//        displaySet.stream().forEach(element -> Bukkit.getLogger().info(element));
 
         PlayerDataStorageUtil playerDataStorageUtil = plugin.getPlayerDataStorageUtil();
         Map<String, Integer> stringIntegerMap = playerDataStorageUtil.readItems(player.getName());

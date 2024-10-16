@@ -62,14 +62,13 @@ public class AttributeGuiManager {
     public void openGui(Player player, String guiId) {
         FileConfiguration config = guiConfigs.get(guiId);
         if (config == null) {
-            PlayerMessage.sendMessage(player, "&c找不到对应的 GUI 配置文件！");
+            PlayerMessage.sendMessage(player, CommonConstant.PLUGIN_NAME_PREFIX + "&c找不到对应的 GUI 配置文件！");
             return;
         }
 
         String guiName = ColorUtil.translateColorCode(config.getString("guiName"));
         List<String> layout = config.getStringList("layout");
         Inventory inventory = Bukkit.createInventory(null, 9 * (!layout.isEmpty() ? layout.size() : 1 ), guiName);
-
         AttributeGuiItemUtil attributeGuiItemUtil = plugin.getAttributeGuiItemUtil();
         Map<String, AttributeGuiItem> itemMap = attributeGuiItemUtil.loadItems(CommonConstant.ATTRIBUTE_FOLDER, guiId);
 
@@ -96,7 +95,6 @@ public class AttributeGuiManager {
                     if (itemMap != null) {
                         attributeItem = itemMap.get(itemId);
                     }
-
                     if (attributeItem == null) {
                         continue;
                     }
@@ -106,11 +104,9 @@ public class AttributeGuiManager {
                     int slot = row * 9 + col;
                     inventory.setItem(slot, itemStack);
                 }
-
                 col++;
             }
         }
-
         player.openInventory(inventory);
     }
 
@@ -118,7 +114,6 @@ public class AttributeGuiManager {
      * 清理所有资源
      */
     public void clearResources() {
-        // 清空 GUI 配置
         guiConfigs.clear();
     }
 }

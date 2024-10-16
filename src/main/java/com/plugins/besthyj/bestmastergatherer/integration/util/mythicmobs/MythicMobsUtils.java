@@ -58,7 +58,7 @@ public class MythicMobsUtils {
 
 //            Bukkit.getLogger().info(displayName);
 
-            return displayName; // 获取物品的显示名称
+            return displayName;
         } else {
             throw new IllegalArgumentException("未找到指定的 MythicItem: " + itemId);
         }

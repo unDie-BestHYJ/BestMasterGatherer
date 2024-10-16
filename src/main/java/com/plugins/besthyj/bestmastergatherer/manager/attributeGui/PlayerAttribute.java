@@ -29,29 +29,21 @@ public class PlayerAttribute {
     public List<ItemStack> getItemStackList(Player player) {
         AttributeGuiManager attributeGuiManager = plugin.getAttributeGuiManager();
         Map<String, FileConfiguration> guiConfigs = attributeGuiManager.getGuiConfigs();
-
         List<ItemStack> items = new ArrayList<ItemStack>();
-
         AttributeGuiItemUtil attributeGuiItemUtil = plugin.getAttributeGuiItemUtil();
-
         for (String guiId: guiConfigs.keySet()) {
             Map<String, AttributeGuiItem> itemMap = attributeGuiItemUtil.loadItems(CommonConstant.ATTRIBUTE_FOLDER, guiId);
-
             for (AttributeGuiItem attributeGuiItem: itemMap.values()) {
                 int count = attributeGuiItemUtil.getCollectedCount(player, attributeGuiItem);
-
                 ItemStack itemStack = attributeGuiItemUtil.getAttributeItemStack(attributeGuiItem, count);
-
                 items.add(itemStack);
             }
         }
-
         return items;
     }
 
     public void addAttributeToPlayer(Player player) {
         List<ItemStack> items = getItemStackList(player);
-
         AttributePlusHandler.addAttributesItemStack(player, items);
     }
 }

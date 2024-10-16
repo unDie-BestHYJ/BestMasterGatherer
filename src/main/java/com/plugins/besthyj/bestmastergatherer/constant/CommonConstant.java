@@ -4,6 +4,7 @@ import com.plugins.besthyj.bestmastergatherer.util.ColorUtil;
 
 public class CommonConstant {
     public static final String PLUGIN_NAME = "BestMasterGatherer";
+    public static final String PLUGIN_NAME_PREFIX = ColorUtil.translateColorCode("&7[&6收集系统&7] &8>> ");
 
     public static final String COLLECT_FOLDER = "collectGUI";
     public static final String ATTRIBUTE_FOLDER = "attributeGUI";
