@@ -1,6 +1,7 @@
 package com.plugins.besthyj.bestmastergatherer.listener.collectGui;
 
 import com.plugins.besthyj.bestmastergatherer.BestMasterGatherer;
+import com.plugins.besthyj.bestmastergatherer.constant.CommonConstant;
 import com.plugins.besthyj.bestmastergatherer.manager.attributeGui.PlayerAttribute;
 import com.plugins.besthyj.bestmastergatherer.manager.collectGui.CollectGuiManager;
 import com.plugins.besthyj.bestmastergatherer.util.ColorUtil;
@@ -28,10 +29,12 @@ public class CollectGuiListener implements Listener {
 
     private final BestMasterGatherer plugin;
     private final Map<String, String> guiNames = new HashMap<>(); // 保存 GUI 的 ID 和名称映射
+    private final Map<String, List<Integer>> filledSlotsMap = new HashMap<>();
 
     public CollectGuiListener(BestMasterGatherer plugin) {
         this.plugin = plugin;
         loadGUINames();
+        loadGUILayoutSlots();
     }
 
     /**
@@ -45,13 +48,23 @@ public class CollectGuiListener implements Listener {
                 for (File guiFile : guiFiles) {
                     FileConfiguration config = YamlConfiguration.loadConfiguration(guiFile);
                     String guiId = guiFile.getName().replace(".yml", "");
-
-                    // 获取 guiName，如果不存在，则用 guiId 替代
                     String guiName = config.getString("guiName", guiId);
                     String translatedGuiName = ColorUtil.translateColorCode(guiName);
-
-                    // 存储 GUI 的带颜色名称作为 key
                     guiNames.put(translatedGuiName, guiId);
+                }
+            }
+        }
+    }
+
+    private void loadGUILayoutSlots() {
+        File guiFolder = new File(plugin.getDataFolderPath(), "collectGUI");
+        if (guiFolder.exists() && guiFolder.isDirectory()) {
+            File[] guiFiles = guiFolder.listFiles((dir, name) -> name.endsWith(".yml"));
+            if (guiFiles != null) {
+                for (File guiFile : guiFiles) {
+                    String guiId = guiFile.getName().replace(".yml", "");
+                    List<Integer> filledSlots = plugin.getPlayerDataStorageUtil().getFilledSlots(guiId, "collectGUI");
+                    filledSlotsMap.put(guiId, filledSlots);
                 }
             }
         }
@@ -69,12 +82,30 @@ public class CollectGuiListener implements Listener {
         InventoryView view = event.getView();
         String inventoryTitle = view.getTitle();
 
+        if (!guiNames.containsKey(inventoryTitle)) {
+            return;
+        }
+
+        if (event.isShiftClick()) {
+            event.setCancelled(true);
+            PlayerMessage.sendMessage(player, CommonConstant.PLUGIN_NAME_PREFIX + "&c禁止 shift+鼠标 的点击操作");
+            return;
+        }
+
+        String guiId = guiNames.get(inventoryTitle);
+
         PlayerDataStorageUtil playerDataStorageUtil = plugin.getPlayerDataStorageUtil();
-//        CollectGuiManager collectGuiManager = plugin.getCollectGuiManager();
+        List<Integer> filledSlots = filledSlotsMap.get(guiId);
+
+        CollectGuiManager collectGuiManager = plugin.getCollectGuiManager();
+        collectGuiManager.handleInventoryClick(event);
 
         if (guiNames.containsKey(inventoryTitle)) {
-            Bukkit.getLogger().info(inventoryTitle);
             if (clickedInventory != null && clickedInventory.equals(view.getTopInventory())) {
+                if (filledSlots.contains(event.getSlot())) {
+                    event.setCancelled(true);
+                    return;
+                }
                 ItemStack clickedItem = event.getCurrentItem();
                 if (clickedItem != null && clickedItem.getType() != Material.AIR) {
                     if (player.getInventory().firstEmpty() != -1) {
@@ -82,13 +113,12 @@ public class CollectGuiListener implements Listener {
                         clickedInventory.setItem(event.getSlot(), null);
                         int page = ((PaginatedInventoryHolder) clickedInventory.getHolder()).getCurrentPage();
                         playerDataStorageUtil.deleteItemData(player.getName(), page, event.getSlot());
-                        player.sendMessage(ColorUtil.translateColorCode("&a物品已放入背包！"));
+                        PlayerMessage.sendMessage(player, CommonConstant.PLUGIN_NAME_PREFIX + "&a物品已放入背包！");
                     } else {
-                        player.sendMessage(ColorUtil.translateColorCode("&c背包已满，请先清理背包！"));
+                        PlayerMessage.sendMessage(player, CommonConstant.PLUGIN_NAME_PREFIX + "&c背包已满，请先清理背包！");
                     }
                 }
             } else if (clickedInventory != null && clickedInventory.equals(player.getInventory())) {
-                Bukkit.getLogger().info(player.getInventory().toString());
                 ItemStack clickedItem = event.getCurrentItem();
                 if (clickedItem != null && clickedItem.getType() != Material.AIR) {
                     Inventory topInventory = view.getTopInventory();
@@ -99,10 +129,10 @@ public class CollectGuiListener implements Listener {
                         player.getInventory().setItem(event.getSlot(), null);
                         int page = ((PaginatedInventoryHolder) topInventory.getHolder()).getCurrentPage();
                         playerDataStorageUtil.saveItemData(player, clickedItem, page, emptySlot);
-                        player.sendMessage(ColorUtil.translateColorCode("&a物品已移入仓库！"));
+                        PlayerMessage.sendMessage(player, CommonConstant.PLUGIN_NAME_PREFIX + "&a物品已移入仓库！");
                     } else {
                         event.setCancelled(true);
-                        player.sendMessage(ColorUtil.translateColorCode("&c该页仓库已满，无法放入更多物品！"));
+                        PlayerMessage.sendMessage(player, CommonConstant.PLUGIN_NAME_PREFIX + "&c该页仓库已满，无法放入更多物品！");
                     }
                 }
             }
@@ -123,7 +153,6 @@ public class CollectGuiListener implements Listener {
             InventoryView view = event.getView();
             String inventoryTitle = view.getTitle();
             String guiId = guiNames.get(inventoryTitle);
-
             int page = ((PaginatedInventoryHolder) closedInventory.getHolder()).getCurrentPage();
 
             // 删除旧文件
@@ -142,7 +171,7 @@ public class CollectGuiListener implements Listener {
 
             PlayerAttribute playerAttribute = plugin.getPlayerAttribute();
             playerAttribute.addAttributeToPlayer(player);
-            PlayerMessage.sendMessage(player, "&6你的属性已更新！");
+            PlayerMessage.sendMessage(player, CommonConstant.PLUGIN_NAME_PREFIX + "&6你的属性已更新！");
         }
     }
 

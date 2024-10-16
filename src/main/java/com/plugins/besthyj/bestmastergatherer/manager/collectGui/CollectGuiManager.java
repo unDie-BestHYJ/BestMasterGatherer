@@ -1,6 +1,7 @@
 package com.plugins.besthyj.bestmastergatherer.manager.collectGui;
 
 import com.plugins.besthyj.bestmastergatherer.BestMasterGatherer;
+import com.plugins.besthyj.bestmastergatherer.constant.CommonConstant;
 import com.plugins.besthyj.bestmastergatherer.constant.VariableConstant;
 import com.plugins.besthyj.bestmastergatherer.listener.collectGui.CollectGuiListener;
 import com.plugins.besthyj.bestmastergatherer.model.collectGui.PaginatedInventoryHolder;
@@ -22,7 +23,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 public class CollectGuiManager {
 
@@ -63,7 +63,7 @@ public class CollectGuiManager {
     public void openGui(Player player, String guiId, int page) {
         FileConfiguration config = guiConfigs.get(guiId);
         if (config == null) {
-            PlayerMessage.sendMessage(player, "&c找不到对应的 GUI 配置文件！");
+            PlayerMessage.sendMessage(player, CommonConstant.PLUGIN_NAME_PREFIX + "&c找不到对应的 GUI 配置文件！");
             return;
         }
 
@@ -72,7 +72,7 @@ public class CollectGuiManager {
 
         int totalPage = config.getInt("pages");
         if (page > totalPage || page < 1) {
-            PlayerMessage.sendMessage(player, "&c该页不存在！");
+            PlayerMessage.sendMessage(player, CommonConstant.PLUGIN_NAME_PREFIX + "&c该页不存在！");
             return;
         }
 
@@ -145,21 +145,21 @@ public class CollectGuiManager {
     public void updateGui(Player player, String guiId, int page) {
         FileConfiguration config = guiConfigs.get(guiId);
         if (config == null) {
-            PlayerMessage.sendMessage(player, "&c找不到对应的 GUI 配置文件！");
+            PlayerMessage.sendMessage(player, CommonConstant.PLUGIN_NAME_PREFIX + "&c找不到对应的 GUI 配置文件！");
             return;
         }
 
         List<String> layout = config.getStringList("layout");
         int totalPage = config.getInt("pages");
         if (page > totalPage || page < 1) {
-            PlayerMessage.sendMessage(player, "&c该页不存在！");
+            PlayerMessage.sendMessage(player, CommonConstant.PLUGIN_NAME_PREFIX + "&c该页不存在！");
             return;
         }
 
         Inventory inventory = player.getOpenInventory().getTopInventory();
 
         if (!(inventory.getHolder() instanceof PaginatedInventoryHolder)) {
-            PlayerMessage.sendMessage(player, "&c当前界面无法更新！");
+            PlayerMessage.sendMessage(player, CommonConstant.PLUGIN_NAME_PREFIX + "&c当前界面无法更新！");
             return;
         }
 
@@ -265,7 +265,6 @@ public class CollectGuiManager {
         if (currentItem == null || !currentItem.hasItemMeta()) {
             return;
         }
-
         ItemMeta itemMeta = currentItem.getItemMeta();
         String clickedItemName = itemMeta != null ? itemMeta.getDisplayName() : "";
         String inventoryTitle = event.getView().getTitle();
@@ -274,52 +273,83 @@ public class CollectGuiManager {
         if (guiId == null) {
             return;
         }
-
         Player player = (Player) event.getWhoClicked();
-
         if (clickedItemName.equals(ColorUtil.translateColorCode(guiConfigs.get(guiId).getString("items.L.Display")))) {
             int currentPage = getCurrentPage(event);
             if (currentPage > 1) {
-                updateGui((Player) event.getWhoClicked(), guiId, currentPage - 1);
-//                CompletableFuture.runAsync(() -> {
-//                    saveCurrentPageData(player, guiId, currentPage);
-//                    Bukkit.getLogger().info("[BestMasterGatherer]玩家 " + player.getName() + " 第 " + currentPage + " 页数据保存完毕");
-//                }).thenCompose(v -> CompletableFuture.runAsync(() -> {
-//                    // 延迟保存，确保数据保存完成后才继续下一步
-//                    Bukkit.getLogger().info("[BestMasterGatherer]玩家 " + player.getName() + " 正在打开第 " + (currentPage - 1) + " 页");
-//                })).thenRun(() -> {
-//                    Bukkit.getScheduler().runTask(plugin, () -> {
-//                        updateGui((Player) event.getWhoClicked(), guiId, currentPage - 1);
-//                    });
-//                });
+                updateGui(player, guiId, currentPage - 1);
             }
         } else if (clickedItemName.equals(ColorUtil.translateColorCode(guiConfigs.get(guiId).getString("items.N.Display")))) {
             int currentPage = getCurrentPage(event);
             int totalPages = guiConfigs.get(guiId).getInt("pages");
-
             if (currentPage < totalPages) {
-                updateGui((Player) event.getWhoClicked(), guiId, currentPage + 1);
-//                CompletableFuture.runAsync(() -> {
-//                    saveCurrentPageData(player, guiId, currentPage);
-//                    Bukkit.getLogger().info("[BestMasterGatherer]玩家 " + player.getName() + " 第 " + currentPage + " 页数据保存完毕");
-//                }).thenCompose(v -> CompletableFuture.runAsync(() -> {
-//                    Bukkit.getLogger().info("[BestMasterGatherer]玩家 " + player.getName() + " 正在打开第 " + (currentPage + 1) + " 页");
-//                })).thenRun(() -> {
-//                    Bukkit.getScheduler().runTask(plugin, () -> {
-//                        updateGui((Player) event.getWhoClicked(), guiId, currentPage + 1);
-//                    });
-//                });
+                updateGui(player, guiId, currentPage + 1);
             }
         }
     }
+//    public void handleInventoryClick(InventoryClickEvent event) {
+//        ItemStack currentItem = event.getCurrentItem();
+//        if (currentItem == null || !currentItem.hasItemMeta()) {
+//            return;
+//        }
+//        ItemMeta itemMeta = currentItem.getItemMeta();
+//        String clickedItemName = itemMeta != null ? itemMeta.getDisplayName() : "";
+//        String inventoryTitle = event.getView().getTitle();
+//        String guiId = new CollectGuiListener(plugin).getGuiIdByName(inventoryTitle);
+//
+//        if (guiId == null) {
+//            return;
+//        }
+//        Player player = (Player) event.getWhoClicked();
+//        if (clickedItemName.equals(ColorUtil.translateColorCode(guiConfigs.get(guiId).getString("items.L.Display")))) {
+//            int currentPage = getCurrentPage(event);
+//            if (currentPage > 1) {
+//                updateGui(player, guiId, currentPage - 1);
+////                CompletableFuture.runAsync(() -> {
+////                    saveCurrentPageData(player, guiId, currentPage);
+////                    Bukkit.getLogger().info("[BestMasterGatherer]玩家 " + player.getName() + " 第 " + currentPage + " 页数据保存完毕");
+////                }).thenCompose(v -> CompletableFuture.runAsync(() -> {
+////                    // 延迟保存，确保数据保存完成后才继续下一步
+////                    Bukkit.getLogger().info("[BestMasterGatherer]玩家 " + player.getName() + " 正在打开第 " + (currentPage - 1) + " 页");
+////                })).thenRun(() -> {
+////                    Bukkit.getScheduler().runTask(plugin, () -> {
+////                        updateGui((Player) event.getWhoClicked(), guiId, currentPage - 1);
+////                    });
+////                });
+//            }
+//        } else if (clickedItemName.equals(ColorUtil.translateColorCode(guiConfigs.get(guiId).getString("items.N.Display")))) {
+//            int currentPage = getCurrentPage(event);
+//            int totalPages = guiConfigs.get(guiId).getInt("pages");
+//            if (currentPage < totalPages) {
+//                updateGui(player, guiId, currentPage + 1);
+////                CompletableFuture.runAsync(() -> {
+////                    saveCurrentPageData(player, guiId, currentPage);
+////                    Bukkit.getLogger().info("[BestMasterGatherer]玩家 " + player.getName() + " 第 " + currentPage + " 页数据保存完毕");
+////                }).thenCompose(v -> CompletableFuture.runAsync(() -> {
+////                    Bukkit.getLogger().info("[BestMasterGatherer]玩家 " + player.getName() + " 正在打开第 " + (currentPage + 1) + " 页");
+////                })).thenRun(() -> {
+////                    Bukkit.getScheduler().runTask(plugin, () -> {
+////                        updateGui((Player) event.getWhoClicked(), guiId, currentPage + 1);
+////                    });
+////                });
+//            }
+//        }
+//    }
 
+    /**
+     * 保存当前页的所有数据
+     *
+     * @param player
+     * @param guiId
+     * @param currentPage
+     */
     private void saveCurrentPageData(Player player, String guiId, int currentPage) {
         PlayerDataStorageUtil playerDataStorageUtil = plugin.getPlayerDataStorageUtil();
         playerDataStorageUtil.deleteItemData(player.getName(), currentPage);
 
         FileConfiguration config = guiConfigs.get(guiId);
         if (config == null) {
-            PlayerMessage.sendMessage(player, "&c找不到对应的 GUI 配置文件！");
+            PlayerMessage.sendMessage(player, CommonConstant.PLUGIN_NAME_PREFIX + "&c找不到对应的 GUI 配置文件！");
             return;
         }
 

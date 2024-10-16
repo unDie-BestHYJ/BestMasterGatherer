@@ -1,0 +1,26 @@
+name: BestMasterGatherer
+version: '1.1.1-SNAPSHOT'
+main: com.plugins.besthyj.bestmastergatherer.BestMasterGatherer
+author: 筠筠
+description: "大师收集系统"
+
+# 插件需要的依赖
+depend:
+  - PlaceholderAPI # 如果插件使用了PlaceholderAPI，需要将其标为依赖
+  - AttributePlus
+
+# 插件中提供的命令
+commands:
+  BestMasterGatherer:
+    description: "打开指定ID的自定义界面"
+    aliases: [bmg]
+    permission: "bestmastergatherer.use"
+
+# 权限节点
+permissions:
+  bestmastergatherer.use:
+    description: "允许玩家使用BestMasterGatherer的命令"
+    default: op
+  bestmastergatherer.admin:
+    description: "允许管理员使用BestMasterGatherer的高级功能"
+    default: op
