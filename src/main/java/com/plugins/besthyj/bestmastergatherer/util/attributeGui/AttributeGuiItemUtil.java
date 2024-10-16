@@ -22,9 +22,13 @@ import java.util.regex.Pattern;
 
 public class AttributeGuiItemUtil {
     private final BestMasterGatherer plugin;
+    private final Map<UUID, Set<String>> playerCollectedCache;
+    private final Map<String, Set<String>> mythicItemCache;
 
     public AttributeGuiItemUtil(BestMasterGatherer plugin) {
         this.plugin = plugin;
+        this.playerCollectedCache = new HashMap<>();
+        this.mythicItemCache = new HashMap<>();
     }
 
     public Map<String, AttributeGuiItem> loadItems(String folder, String guiId) {
@@ -186,7 +190,7 @@ public class AttributeGuiItemUtil {
         itemMeta.setLore(attrLores);
         itemStack.setItemMeta(itemMeta);
 
-        Bukkit.getLogger().info(itemStack.toString());
+//        Bukkit.getLogger().info(itemStack.toString());
 
         return itemStack;
     }
@@ -199,23 +203,24 @@ public class AttributeGuiItemUtil {
      * @param item
      * @return
      */
-    // TODO
-    // 这两个方法都会读取玩家的物品数据并检查是否与 MythicMobs 的物品集合匹配。建议缓存这些集合，避免频繁读取和处理。特别是在高并发的情况下，频繁从文件中读取和操作会导致性能瓶颈。
-    // 建议：可以考虑为每个玩家缓存 displaySet 和 collectedDisplaySet，只在玩家数据更新或物品发生变化时重新生成。
-    public LinkedHashSet<String> getDisplaySet(AttributeGuiItem item) {
-        List<String> mmItems = item.getMMItemsList();
-        if (mmItems == null || mmItems.isEmpty()) {
-            return null;
+    public Set<String> getDisplaySet(AttributeGuiItem item) {
+        String itemId = item.getItemId();
+        if (mythicItemCache.containsKey(itemId)) {
+            return mythicItemCache.get(itemId);
         }
 
-        LinkedHashSet<String> displaySet = new LinkedHashSet<>();
+        List<String> mmItems = item.getMMItemsList();
+        if (mmItems == null || mmItems.isEmpty()) {
+            return Collections.emptySet();
+        }
 
+        Set<String> displaySet = new LinkedHashSet<>();
         for (String mmItem : mmItems) {
             String displayName = MythicMobsUtils.getMythicItemDisplayName(mmItem);
-
             displaySet.add(displayName);
         }
 
+        mythicItemCache.put(itemId, displaySet);
         return displaySet;
     }
 
@@ -258,25 +263,25 @@ public class AttributeGuiItemUtil {
      * @return
      */
     public Set<String> getCollectedSet(Player player, AttributeGuiItem attributeGuiItem) {
-        Set<String> displaySet = getDisplaySet(attributeGuiItem);
-        Set<String> collectedDisplaySet = new HashSet<>();
+        UUID playerId = player.getUniqueId();
+        if (playerCollectedCache.containsKey(playerId)) {
+            return playerCollectedCache.get(playerId);
+        }
 
+        Set<String> displaySet = getDisplaySet(attributeGuiItem);
         PlayerDataStorageUtil playerDataStorageUtil = plugin.getPlayerDataStorageUtil();
         Map<String, Integer> stringIntegerMap = playerDataStorageUtil.readItems(player.getName());
 
-        Set<String> itemSet  = null;
-        if (stringIntegerMap != null) {
-            itemSet = stringIntegerMap.keySet();
-        }
-
-        if (displaySet != null && itemSet != null) {
+        Set<String> collectedDisplaySet = new HashSet<>();
+        if (stringIntegerMap != null && displaySet != null) {
             for (String displayName : displaySet) {
-                if (itemSet.contains(displayName)) {
+                if (stringIntegerMap.containsKey(displayName)) {
                     collectedDisplaySet.add(displayName);
                 }
             }
         }
 
+        playerCollectedCache.put(playerId, collectedDisplaySet);
         return collectedDisplaySet;
     }
 }

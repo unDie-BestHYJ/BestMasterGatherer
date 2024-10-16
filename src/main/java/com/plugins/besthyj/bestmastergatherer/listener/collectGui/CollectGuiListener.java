@@ -7,6 +7,8 @@ import com.plugins.besthyj.bestmastergatherer.util.ColorUtil;
 import com.plugins.besthyj.bestmastergatherer.util.collectGui.PlayerDataStorageUtil;
 import com.plugins.besthyj.bestmastergatherer.model.collectGui.PaginatedInventoryHolder;
 import com.plugins.besthyj.bestmastergatherer.util.PlayerMessage;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -62,31 +64,48 @@ public class CollectGuiListener implements Listener {
      */
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-
-        InventoryView view = event.getView();
+        Player player = (Player) event.getWhoClicked();
         Inventory clickedInventory = event.getClickedInventory();
-
-        // 获取带颜色的界面标题
+        InventoryView view = event.getView();
         String inventoryTitle = view.getTitle();
 
         PlayerDataStorageUtil playerDataStorageUtil = plugin.getPlayerDataStorageUtil();
+//        CollectGuiManager collectGuiManager = plugin.getCollectGuiManager();
+        int page = ((PaginatedInventoryHolder) clickedInventory.getHolder()).getCurrentPage();
 
-        CollectGuiManager collectGuiManager = plugin.getCollectGuiManager();
-
-        // 检查是否点击的是自定义 GUI
         if (guiNames.containsKey(inventoryTitle)) {
-
             if (clickedInventory != null && clickedInventory.equals(view.getTopInventory())) {
-                List<Integer> filledSlots = playerDataStorageUtil.getFilledSlots(guiNames.get(inventoryTitle), "collectGUI");
-
-                int clickedSlot = event.getSlot();
-                if (filledSlots.contains(clickedSlot)) {
-                    event.setCancelled(true);
-                } else {
-                    event.setCancelled(false);
+                ItemStack clickedItem = event.getCurrentItem();
+                if (clickedItem != null && clickedItem.getType() != Material.AIR) {
+                    if (player.getInventory().firstEmpty() != -1) {
+                        player.getInventory().addItem(clickedItem);
+                        clickedInventory.setItem(event.getSlot(), null);
+                        playerDataStorageUtil.deleteItemData(player.getName(), page, event.getSlot());
+                        player.sendMessage(ColorUtil.translateColorCode("&c物品已从仓库取出并移入背包！"));
+                    } else {
+                        player.sendMessage(ColorUtil.translateColorCode("&c背包已满，请先清理背包！"));
+                    }
                 }
-                collectGuiManager.handleInventoryClick(event); // 处理 GUI 内部点击逻辑
+            } else if (clickedInventory != null && clickedInventory.equals(player.getInventory())) {
+                Bukkit.getLogger().info(player.getInventory().toString());
+                ItemStack clickedItem = event.getCurrentItem();
+                if (clickedItem != null && clickedItem.getType() != Material.AIR) {
+                    Inventory topInventory = view.getTopInventory();
+                    int emptySlot = topInventory.firstEmpty();
+                    if (emptySlot != -1) {
+                        event.setCancelled(true);
+                        topInventory.setItem(emptySlot, clickedItem);
+                        player.getInventory().setItem(event.getSlot(), null);
+                        playerDataStorageUtil.saveItemData(player, clickedItem, page, emptySlot);
+                        player.sendMessage("物品已移入仓库！");
+                    } else {
+                        event.setCancelled(true);
+                        player.sendMessage("该页仓库已满，无法放入更多物品！");
+                    }
+                }
             }
+
+            event.setCancelled(true);
         }
     }
 
@@ -107,23 +126,21 @@ public class CollectGuiListener implements Listener {
             int page = ((PaginatedInventoryHolder) closedInventory.getHolder()).getCurrentPage();
 
             // 删除旧文件
-            PlayerDataStorageUtil playerDataStorageUtil = plugin.getPlayerDataStorageUtil();
-            playerDataStorageUtil.deleteItemData(player.getName(), page);
+//            PlayerDataStorageUtil playerDataStorageUtil = plugin.getPlayerDataStorageUtil();
+//            playerDataStorageUtil.deleteItemData(player.getName(), page);
 
-            for (int slot = 0; slot < closedInventory.getSize(); slot++) {
-                if (playerDataStorageUtil.getFilledSlots(guiId, "collectGUI").contains(slot)) {continue;}
-                ItemStack item = closedInventory.getItem(slot);
-                if (item != null) {
-
-                    playerDataStorageUtil.saveItemData(player, item, page, slot);
-                }
-            }
-
-            PlayerMessage.sendMessage(player, "&a你的仓库物品已保存！");
+//            for (int slot = 0; slot < closedInventory.getSize(); slot++) {
+//                if (playerDataStorageUtil.getFilledSlots(guiId, "collectGUI").contains(slot)) {continue;}
+//                ItemStack item = closedInventory.getItem(slot);
+//                if (item != null) {
+//                    playerDataStorageUtil.saveItemData(player, item, page, slot);
+//                }
+//            }
+//            Bukkit.getLogger().info("[BestMasterGatherer]玩家 " + player.getName() + " 第 " + page + " 页数据保存完毕");
+//            PlayerMessage.sendMessage(player, "&a你的仓库物品已保存！");
 
             PlayerAttribute playerAttribute = plugin.getPlayerAttribute();
             playerAttribute.addAttributeToPlayer(player);
-
             PlayerMessage.sendMessage(player, "&6你的属性已更新！");
         }
     }
@@ -164,5 +181,5 @@ public class CollectGuiListener implements Listener {
      */
     public void clearResources() {
         guiNames.clear();
-
+    }
 }

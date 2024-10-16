@@ -5,11 +5,11 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.plugins.besthyj.bestinventory.api.InventoryItemAPI;
 import com.plugins.besthyj.bestmastergatherer.BestMasterGatherer;
+import de.tr7zw.nbtapi.NBTItem;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -17,10 +17,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class PlayerDataStorageUtil {
 
@@ -33,59 +30,79 @@ public class PlayerDataStorageUtil {
     }
 
     /**
+     * 从 ItemStack 中提取 NBT 数据，忽略 "display" 标签，并返回处理过的 NBT 数据字符串
+     *
+     * @param item 目标物品
+     * @return 返回物品的 NBT 数据字符串，忽略 "display" 标签
+     */
+    private String getNbtData(ItemStack item) {
+        StringBuilder nbtDataString = new StringBuilder();
+        if (item == null) {
+            return nbtDataString.toString();
+        }
+        NBTItem nbtItem = new NBTItem(item);
+        for (String nbtKey : nbtItem.getKeys()) {
+            if (nbtKey.equals("display")) {
+                continue;
+            }
+            if (nbtItem.hasKey(nbtKey)) {
+                switch (nbtItem.getType(nbtKey)) {
+                    case NBTTagString:
+                        String strValue = nbtItem.getString(nbtKey);
+                        nbtDataString.append(nbtKey).append(":").append(strValue).append(",");
+                        break;
+                    case NBTTagInt:
+                        int intValue = nbtItem.getInteger(nbtKey);
+                        nbtDataString.append(nbtKey).append(":").append(intValue).append(",");
+                        break;
+                    case NBTTagDouble:
+                        double doubleValue = nbtItem.getDouble(nbtKey);
+                        nbtDataString.append(nbtKey).append(":").append(doubleValue).append(",");
+                        break;
+                    case NBTTagFloat:
+                        float floatValue = nbtItem.getFloat(nbtKey);
+                        nbtDataString.append(nbtKey).append(":").append(floatValue).append(",");
+                        break;
+                    case NBTTagLong:
+                        long longValue = nbtItem.getLong(nbtKey);
+                        nbtDataString.append(nbtKey).append(":").append(longValue).append(",");
+                        break;
+                    case NBTTagByte:
+                        byte byteValue = nbtItem.getByte(nbtKey);
+                        nbtDataString.append(nbtKey).append(":").append(byteValue).append(",");
+                        break;
+                    default:
+                        Bukkit.getLogger().warning("无法识别的 NBT 数据类型: " + nbtKey);
+                        break;
+                }
+            }
+        }
+        return nbtDataString.toString();
+    }
+
+    /**
      * 保存物品数据到 JSON 文件
      * 封装过的供外部调用的接口
      *
      * @param player  玩家对象
      * @param item    物品对象
      * @param page    页数
-     * @param slotId  槽位 ID
+     * @param slot  槽位 ID
      */
-    public void saveItemData(Player player, ItemStack item, int page, int slotId) {
-        if (item == null || !item.hasItemMeta()) return; // 检查 item 是否为 null 或没有 Meta
+    public void saveItemData(Player player, ItemStack item, int page, int slot) {
+        if (item == null || !item.hasItemMeta()) return;
 
-        Bukkit.getLogger().info("saveItemData " + item.getItemMeta().getDisplayName());
-
-        // 创建一个存储物品数据的 Map，key 为槽位ID，value 为物品详细信息
         Map<String, Object> itemData = new HashMap<>();
         itemData.put("amount", item.getAmount());
-        itemData.put("itemType", item.getType().name()); // 物品类型
-        itemData.put("itemName", item.getItemMeta().getDisplayName()); // 物品显示名称
+        itemData.put("itemType", item.getType().name());
+        itemData.put("itemName", item.getItemMeta().getDisplayName());
         itemData.put("itemLore", item.getItemMeta().getLore());
         itemData.put("nbtData", getNbtData(item));
 
-        // 将物品数据添加到 inventoryData
         Map<Integer, Map<String, Object>> inventoryData = new HashMap<>();
-        inventoryData.put(slotId, itemData); // 使用传入的槽位ID
+        inventoryData.put(slot, itemData);
 
-        // 保存物品数据到指定页的 JSON 文件
-        PlayerDataStorageUtil playerDataStorageUtil = plugin.getPlayerDataStorageUtil();
-        playerDataStorageUtil.saveItemData(player.getName(), page, inventoryData);
-    }
-
-    /**
-     * 获取nbt标签(除了display)
-     *
-     * @param item
-     * @return
-     */
-    private String getNbtData(ItemStack item) {
-        net.minecraft.server.v1_12_R1.ItemStack nmsItem = CraftItemStack.asNMSCopy(item);
-        net.minecraft.server.v1_12_R1.NBTTagCompound tag = nmsItem.getTag();
-
-        // 创建一个新的 NBTTagCompound 用于保存除了 display 之外的所有 NBT 数据
-        net.minecraft.server.v1_12_R1.NBTTagCompound filteredTag = new net.minecraft.server.v1_12_R1.NBTTagCompound();
-
-        if (tag != null) {
-            // 获取 NBT 数据的所有键
-            for (String key : tag.c()) { // `tag.c()` 获取所有 NBT 键
-                if (!"display".equals(key)) { // 排除 `display` 键
-                    filteredTag.set(key, tag.get(key)); // 将非 `display` 的键值对保存到 filteredTag
-                }
-            }
-        }
-
-        return filteredTag.toString(); // 返回过滤后的 NBT 数据的字符串表示
+        saveItemData(player.getName(), page, inventoryData);
     }
 
     /**
@@ -96,29 +113,63 @@ public class PlayerDataStorageUtil {
      * @param newInventoryData
      */
     private void saveItemData(String playerName, int page, Map<Integer, Map<String, Object>> newInventoryData) {
-        // 定义文件路径，以玩家名为文件夹，以页数作为文件名
         File file = new File(plugin.getDataFolderPath() + File.separator + "storage" + File.separator + playerName, "page_" + page + ".json");
-        file.getParentFile().mkdirs(); // 如果目录不存在则创建
+        file.getParentFile().mkdirs();
 
         Map<Integer, Map<String, Object>> inventoryData = new HashMap<>();
-
-        // 如果文件存在，先读取旧数据
         if (file.exists()) {
             try (FileReader reader = new FileReader(file)) {
                 inventoryData = gson.fromJson(reader, new TypeToken<Map<Integer, Map<String, Object>>>() {}.getType());
             } catch (IOException e) {
-                e.printStackTrace();
+                Bukkit.getLogger().severe("加载仓库存储数据失败: " + e.getMessage());
             }
         }
 
-        // 合并新数据
         inventoryData.putAll(newInventoryData);
-
-        // 将合并后的数据写入文件
         try (FileWriter writer = new FileWriter(file)) {
-            gson.toJson(inventoryData, writer); // 使用 Gson 将合并后的物品数据序列化为 JSON 并写入文件
+            gson.toJson(inventoryData, writer);
         } catch (IOException e) {
-            e.printStackTrace();
+            Bukkit.getLogger().severe("保存仓库存储数据失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 删除仓库内指定槽位的物品数据
+     *
+     * @param playerName        玩家名
+     * @param page              页数
+     * @param slot              需要删除的槽位编号
+     */
+    public void deleteItemData(String playerName, int page, int slot) {
+        File file = new File(plugin.getDataFolderPath() + File.separator + "storage" + File.separator + playerName, "page_" + page + ".json");
+        file.getParentFile().mkdirs();
+
+        Map<Integer, Map<String, Object>> inventoryData = new HashMap<>();
+        if (file.exists()) {
+            // 读取现有的仓库数据
+            try (FileReader reader = new FileReader(file)) {
+                inventoryData = gson.fromJson(reader, new TypeToken<Map<Integer, Map<String, Object>>>() {}.getType());
+            } catch (IOException e) {
+                Bukkit.getLogger().severe("加载仓库存储数据失败: " + e.getMessage());
+                return;
+            }
+
+            // 删除指定槽位的数据
+            if (inventoryData.containsKey(slot)) {
+                inventoryData.remove(slot);
+            } else {
+                Bukkit.getLogger().info("槽位 " + slot + " 没有找到物品数据，无法删除。");
+                return;
+            }
+
+            // 保存更新后的数据
+            try (FileWriter writer = new FileWriter(file)) {
+                gson.toJson(inventoryData, writer);
+            } catch (IOException e) {
+                Bukkit.getLogger().severe("保存仓库存储数据失败: " + e.getMessage());
+            }
+        } else {
+            Bukkit.getLogger().info("页面 " + page + " 的仓库数据文件不存在。");
         }
     }
 
@@ -143,14 +194,12 @@ public class PlayerDataStorageUtil {
      */
     public Map<String, Map<String, Object>> readItemData(String playerName, int page) {
         File file = new File(plugin.getDataFolderPath() + File.separator + "storage" + File.separator + playerName, "page_" + page + ".json");
-        if (!file.exists()) {
-            return null;
-        }
+        if (!file.exists()) return null;
 
         try (FileReader reader = new FileReader(file)) {
-            return gson.fromJson(reader, HashMap.class);
+            return gson.fromJson(reader, new TypeToken<Map<String, Map<String, Object>>>() {}.getType());
         } catch (IOException e) {
-            e.printStackTrace();
+            Bukkit.getLogger().severe("读取仓库存储数据失败: " + e.getMessage());
             return null;
         }
     }
@@ -164,34 +213,29 @@ public class PlayerDataStorageUtil {
     public Map<String, Integer> readItems(String playerName) {
         File playerFolder = new File(plugin.getDataFolderPath() + File.separator + "storage" + File.separator + playerName);
         if (!playerFolder.exists() || !playerFolder.isDirectory()) {
-            return null; // 如果玩家文件夹不存在，则返回 null
+            return null;
         }
 
         Map<String, Integer> itemsMap = new HashMap<>();
 
-        // 遍历玩家文件夹中的所有文件
         for (File file : playerFolder.listFiles()) {
             if (file.isFile() && file.getName().endsWith(".json")) {
                 try (FileReader reader = new FileReader(file)) {
-                    // 读取 JSON 文件内容并解析为 Map
                     Map<String, Map<String, Object>> fileData = gson.fromJson(reader, HashMap.class);
 
-                    // 遍历当前文件中的所有槽位数据
                     for (Map.Entry<String, Map<String, Object>> entry : fileData.entrySet()) {
                         Map<String, Object> itemData = entry.getValue();
 
-                        // 获取物品名称和数量
                         String itemName = (String) itemData.get("itemName");
-                        Double itemCount = (Double) itemData.get("amount"); // 读取数量，注意这是 Double 类型
+                        Double itemCount = (Double) itemData.get("amount");
 
-                        // 将物品名称和数量添加到 itemsMap
                         if (itemName != null && itemCount != null) {
-                            int totalCount = itemCount.intValue(); // 转换为 int 类型
-                            itemsMap.merge(itemName, totalCount, Integer::sum); // 累加相同物品的数量
+                            int totalCount = itemCount.intValue();
+                            itemsMap.merge(itemName, totalCount, Integer::sum);
                         }
                     }
                 } catch (IOException e) {
-                    e.printStackTrace(); // 处理异常
+                    e.printStackTrace();
                 }
             }
         }
@@ -200,11 +244,11 @@ public class PlayerDataStorageUtil {
         Player player = Bukkit.getPlayer(playerName);
         if (player != null) {
             for (ItemStack item : player.getInventory().getContents()) {
-                if (item != null && item.getType() != Material.AIR) { // 确保物品不为空
-                    String itemName = item.getItemMeta().getDisplayName(); // 获取物品类型名称
-                    int itemCount = item.getAmount(); // 获取物品数量
+                if (item != null && item.getType() != Material.AIR) {
+                    String itemName = item.getItemMeta().getDisplayName();
+                    int itemCount = item.getAmount();
 
-                    itemsMap.merge(itemName, itemCount, Integer::sum); // 累加相同物品的数量
+                    itemsMap.merge(itemName, itemCount, Integer::sum);
                 }
             }
         }
@@ -227,37 +271,70 @@ public class PlayerDataStorageUtil {
     }
 
     /**
-     * 应用nbt标签
+     * 将nbtData添加到ItemStack上
      *
      * @param item
      * @param nbtData
+     * @return
      */
-    public void applyNbtData(ItemStack item, String nbtData) {
+    public ItemStack applyNbtData(ItemStack item, String nbtData) {
+//        Bukkit.getLogger().info(nbtData);
         try {
-            // 获取 NMS 版本的 ItemStack
-            net.minecraft.server.v1_12_R1.ItemStack nmsItem = CraftItemStack.asNMSCopy(item);
-            net.minecraft.server.v1_12_R1.NBTTagCompound tag = nmsItem.getTag() != null ? nmsItem.getTag() : new net.minecraft.server.v1_12_R1.NBTTagCompound();
+            NBTItem nbtItem = new NBTItem(item);
 
-            // 使用反射访问 MojangsonParser.parse 方法
-            Class<?> mojangsonParserClass = Class.forName("net.minecraft.server.v1_12_R1.MojangsonParser");
-            java.lang.reflect.Method parseMethod = mojangsonParserClass.getDeclaredMethod("parse", String.class);
-            parseMethod.setAccessible(true);  // 确保我们能够访问 private 方法
+            boolean isCurlyBracketFormat = nbtData.startsWith("{") && nbtData.endsWith("}");
 
-            // 调用 parse 方法将 NBT 字符串转换为 NBTTagCompound
-            net.minecraft.server.v1_12_R1.NBTTagCompound nbtParsed = (net.minecraft.server.v1_12_R1.NBTTagCompound) parseMethod.invoke(null, nbtData);
+            if (isCurlyBracketFormat) {
+                nbtData = nbtData.substring(1, nbtData.length() - 1);
+            }
 
-            // 合并现有的 NBT 数据
-            tag.a(nbtParsed); // 将新解析的 NBT 数据合并到现有的 NBT 数据中
+            String[] nbtEntries = nbtData.split(",");
 
-            // 将 NBT 数据设置回物品
-            nmsItem.setTag(tag);
+            for (String entry : nbtEntries) {
+                String[] keyValue;
+                if (isCurlyBracketFormat) {
+                    keyValue = entry.split(":");
+                } else {
+                    keyValue = entry.split(":");
+                }
 
-            // 更新 Bukkit ItemStack
-            item.setItemMeta(CraftItemStack.getItemMeta(nmsItem));
+                if (keyValue.length == 2) {
+                    String key = keyValue[0].trim();
+                    String value = keyValue[1].trim();
+
+                    if (value.equals("true") || value.equals("false")) {
+                        boolean boolValue = Boolean.parseBoolean(value);
+                        nbtItem.setBoolean(key, boolValue);
+                    } else if (value.endsWith("b")) {
+                        byte byteValue = Byte.parseByte(value.substring(0, value.length() - 1));
+                        nbtItem.setByte(key, byteValue);
+                    } else if (value.endsWith("d")) {
+                        double doubleValue = Double.parseDouble(value.substring(0, value.length() - 1));
+                        nbtItem.setDouble(key, doubleValue);
+                    } else if (value.endsWith("f")) {
+                        float floatValue = Float.parseFloat(value.substring(0, value.length() - 1));
+                        nbtItem.setFloat(key, floatValue);
+                    } else if (value.endsWith("L")) {
+                        long longValue = Long.parseLong(value.substring(0, value.length() - 1));
+                        nbtItem.setLong(key, longValue);
+                    } else {
+                        try {
+                            int intValue = Integer.parseInt(value);
+                            nbtItem.setInteger(key, intValue);
+                        } catch (NumberFormatException e) {
+                            nbtItem.setString(key, value);
+                        }
+                    }
+                } else {
+                    Bukkit.getLogger().warning("无法解析的 NBT 数据条目: " + entry);
+                }
+            }
+
+            return nbtItem.getItem();
 
         } catch (Exception e) {
-            e.printStackTrace();
-            // 处理可能的异常，例如反射或 NBT 格式错误
+            Bukkit.getLogger().severe("添加NBT失败: " + e.getMessage());
+            return item;
         }
     }
 
@@ -269,19 +346,17 @@ public class PlayerDataStorageUtil {
      */
     public List<Integer> getFilledSlots(String guiId, String guiFolder) {
         List<Integer> filledSlots = new ArrayList<>();
-        File guiFile = new File(plugin.getDataFolderPath(), guiFolder + "/" + guiId + ".yml");
+        File guiFile = new File(plugin.getDataFolderPath(), guiFolder + File.separator + guiId + ".yml");
 
         if (guiFile.exists()) {
             FileConfiguration config = YamlConfiguration.loadConfiguration(guiFile);
             List<String> layout = config.getStringList("layout");
 
-            // 解析布局，填充槽位
             for (int row = 0; row < layout.size(); row++) {
                 String line = layout.get(row);
                 for (int col = 0; col < line.length(); col++) {
-                    char itemChar = line.charAt(col);
-                    if (itemChar != ' ') { // 非空格字符表示有物品
-                        filledSlots.add(row * 9 + col); // 计算槽位索引
+                    if (line.charAt(col) != ' ') {
+                        filledSlots.add(row * 9 + col);
                     }
                 }
             }
