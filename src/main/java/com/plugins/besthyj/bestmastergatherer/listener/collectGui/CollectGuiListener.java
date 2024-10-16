@@ -71,17 +71,18 @@ public class CollectGuiListener implements Listener {
 
         PlayerDataStorageUtil playerDataStorageUtil = plugin.getPlayerDataStorageUtil();
 //        CollectGuiManager collectGuiManager = plugin.getCollectGuiManager();
-        int page = ((PaginatedInventoryHolder) clickedInventory.getHolder()).getCurrentPage();
 
         if (guiNames.containsKey(inventoryTitle)) {
+            Bukkit.getLogger().info(inventoryTitle);
             if (clickedInventory != null && clickedInventory.equals(view.getTopInventory())) {
                 ItemStack clickedItem = event.getCurrentItem();
                 if (clickedItem != null && clickedItem.getType() != Material.AIR) {
                     if (player.getInventory().firstEmpty() != -1) {
                         player.getInventory().addItem(clickedItem);
                         clickedInventory.setItem(event.getSlot(), null);
+                        int page = ((PaginatedInventoryHolder) clickedInventory.getHolder()).getCurrentPage();
                         playerDataStorageUtil.deleteItemData(player.getName(), page, event.getSlot());
-                        player.sendMessage(ColorUtil.translateColorCode("&c物品已从仓库取出并移入背包！"));
+                        player.sendMessage(ColorUtil.translateColorCode("&a物品已放入背包！"));
                     } else {
                         player.sendMessage(ColorUtil.translateColorCode("&c背包已满，请先清理背包！"));
                     }
@@ -96,15 +97,15 @@ public class CollectGuiListener implements Listener {
                         event.setCancelled(true);
                         topInventory.setItem(emptySlot, clickedItem);
                         player.getInventory().setItem(event.getSlot(), null);
+                        int page = ((PaginatedInventoryHolder) topInventory.getHolder()).getCurrentPage();
                         playerDataStorageUtil.saveItemData(player, clickedItem, page, emptySlot);
-                        player.sendMessage("物品已移入仓库！");
+                        player.sendMessage(ColorUtil.translateColorCode("&a物品已移入仓库！"));
                     } else {
                         event.setCancelled(true);
-                        player.sendMessage("该页仓库已满，无法放入更多物品！");
+                        player.sendMessage(ColorUtil.translateColorCode("&c该页仓库已满，无法放入更多物品！"));
                     }
                 }
             }
-
             event.setCancelled(true);
         }
     }
