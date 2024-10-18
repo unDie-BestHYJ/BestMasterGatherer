@@ -173,7 +173,7 @@ public class CollectGuiManager {
 
         PlayerDataStorageUtil playerDataStorageUtil = plugin.getPlayerDataStorageUtil();
 
-        Map<String, Map<String, Object>> inventoryData = playerDataStorageUtil.readItemData(player.getName(), page); // 从存储中读取当前页的数据
+        Map<String, Map<String, Object>> inventoryData = playerDataStorageUtil.readItemData(player.getName(), page);
 
         for (int row = 0; row < layout.size(); row++) {
             String line = layout.get(row);
@@ -287,54 +287,6 @@ public class CollectGuiManager {
             }
         }
     }
-//    public void handleInventoryClick(InventoryClickEvent event) {
-//        ItemStack currentItem = event.getCurrentItem();
-//        if (currentItem == null || !currentItem.hasItemMeta()) {
-//            return;
-//        }
-//        ItemMeta itemMeta = currentItem.getItemMeta();
-//        String clickedItemName = itemMeta != null ? itemMeta.getDisplayName() : "";
-//        String inventoryTitle = event.getView().getTitle();
-//        String guiId = new CollectGuiListener(plugin).getGuiIdByName(inventoryTitle);
-//
-//        if (guiId == null) {
-//            return;
-//        }
-//        Player player = (Player) event.getWhoClicked();
-//        if (clickedItemName.equals(ColorUtil.translateColorCode(guiConfigs.get(guiId).getString("items.L.Display")))) {
-//            int currentPage = getCurrentPage(event);
-//            if (currentPage > 1) {
-//                updateGui(player, guiId, currentPage - 1);
-////                CompletableFuture.runAsync(() -> {
-////                    saveCurrentPageData(player, guiId, currentPage);
-////                    Bukkit.getLogger().info("[BestMasterGatherer]玩家 " + player.getName() + " 第 " + currentPage + " 页数据保存完毕");
-////                }).thenCompose(v -> CompletableFuture.runAsync(() -> {
-////                    // 延迟保存，确保数据保存完成后才继续下一步
-////                    Bukkit.getLogger().info("[BestMasterGatherer]玩家 " + player.getName() + " 正在打开第 " + (currentPage - 1) + " 页");
-////                })).thenRun(() -> {
-////                    Bukkit.getScheduler().runTask(plugin, () -> {
-////                        updateGui((Player) event.getWhoClicked(), guiId, currentPage - 1);
-////                    });
-////                });
-//            }
-//        } else if (clickedItemName.equals(ColorUtil.translateColorCode(guiConfigs.get(guiId).getString("items.N.Display")))) {
-//            int currentPage = getCurrentPage(event);
-//            int totalPages = guiConfigs.get(guiId).getInt("pages");
-//            if (currentPage < totalPages) {
-//                updateGui(player, guiId, currentPage + 1);
-////                CompletableFuture.runAsync(() -> {
-////                    saveCurrentPageData(player, guiId, currentPage);
-////                    Bukkit.getLogger().info("[BestMasterGatherer]玩家 " + player.getName() + " 第 " + currentPage + " 页数据保存完毕");
-////                }).thenCompose(v -> CompletableFuture.runAsync(() -> {
-////                    Bukkit.getLogger().info("[BestMasterGatherer]玩家 " + player.getName() + " 正在打开第 " + (currentPage + 1) + " 页");
-////                })).thenRun(() -> {
-////                    Bukkit.getScheduler().runTask(plugin, () -> {
-////                        updateGui((Player) event.getWhoClicked(), guiId, currentPage + 1);
-////                    });
-////                });
-//            }
-//        }
-//    }
 
     /**
      * 保存当前页的所有数据

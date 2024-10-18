@@ -22,12 +22,10 @@ import java.util.regex.Pattern;
 
 public class AttributeGuiItemUtil {
     private final BestMasterGatherer plugin;
-    private final Map<UUID, Set<String>> playerCollectedCache;
     private final Map<String, Set<String>> mythicItemCache;
 
     public AttributeGuiItemUtil(BestMasterGatherer plugin) {
         this.plugin = plugin;
-        this.playerCollectedCache = new HashMap<>();
         this.mythicItemCache = new HashMap<>();
     }
 
@@ -194,18 +192,19 @@ public class AttributeGuiItemUtil {
      */
     public Set<String> getDisplaySet(AttributeGuiItem item) {
         String itemId = item.getItemId();
+        Set<String> displaySet = null;
         if (mythicItemCache.containsKey(itemId)) {
-            return mythicItemCache.get(itemId);
+            displaySet = mythicItemCache.get(itemId);
+            return displaySet;
         }
-//        Bukkit.getLogger().info(itemId);
 
+        displaySet = new LinkedHashSet<>();
         List<String> mmItems = item.getMMItemsList();
-//        mmItems.stream().forEach(element -> Bukkit.getLogger().info(element));
+
         if (mmItems == null || mmItems.isEmpty()) {
             return Collections.emptySet();
         }
 
-        Set<String> displaySet = new LinkedHashSet<>();
         for (String mmItem : mmItems) {
             String displayName = MythicMobsUtils.getMythicItemDisplayName(mmItem);
             displaySet.add(displayName);
@@ -224,7 +223,6 @@ public class AttributeGuiItemUtil {
      */
     public Integer getCollectedCount(Player player, AttributeGuiItem attributeGuiItem) {
         Set<String> displaySet = getDisplaySet(attributeGuiItem);
-//        displaySet.stream().forEach(element -> Bukkit.getLogger().info(element));
 
         PlayerDataStorageUtil playerDataStorageUtil = plugin.getPlayerDataStorageUtil();
         Map<String, Integer> stringIntegerMap = playerDataStorageUtil.readItems(player.getName());
@@ -235,7 +233,6 @@ public class AttributeGuiItemUtil {
         }
 
         int count = 0;
-
         if (displaySet != null && itemSet != null) {
             for (String displayName : displaySet) {
                 if (itemSet.contains(displayName)) {
@@ -255,16 +252,13 @@ public class AttributeGuiItemUtil {
      * @return
      */
     public Set<String> getCollectedSet(Player player, AttributeGuiItem attributeGuiItem) {
-        UUID playerId = player.getUniqueId();
-        if (playerCollectedCache.containsKey(playerId)) {
-            return playerCollectedCache.get(playerId);
-        }
+        String playerName = player.getName();
+        Set<String> collectedDisplaySet = new LinkedHashSet<>();
 
         Set<String> displaySet = getDisplaySet(attributeGuiItem);
         PlayerDataStorageUtil playerDataStorageUtil = plugin.getPlayerDataStorageUtil();
-        Map<String, Integer> stringIntegerMap = playerDataStorageUtil.readItems(player.getName());
+        Map<String, Integer> stringIntegerMap = playerDataStorageUtil.readItems(playerName);
 
-        Set<String> collectedDisplaySet = new HashSet<>();
         if (stringIntegerMap != null && displaySet != null) {
             for (String displayName : displaySet) {
                 if (stringIntegerMap.containsKey(displayName)) {
@@ -273,7 +267,6 @@ public class AttributeGuiItemUtil {
             }
         }
 
-        playerCollectedCache.put(playerId, collectedDisplaySet);
         return collectedDisplaySet;
     }
 }

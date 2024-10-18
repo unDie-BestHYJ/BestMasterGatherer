@@ -1,8 +1,7 @@
 package com.plugins.besthyj.bestmastergatherer.listener.attributeGui;
 
 import com.plugins.besthyj.bestmastergatherer.BestMasterGatherer;
-import com.plugins.besthyj.bestmastergatherer.integration.attribute.attributeplus.AttributePlusHandler;
-import com.plugins.besthyj.bestmastergatherer.manager.attributeGui.PlayerAttribute;
+import com.plugins.besthyj.bestmastergatherer.integration.attribute.PlayerAttribute;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;

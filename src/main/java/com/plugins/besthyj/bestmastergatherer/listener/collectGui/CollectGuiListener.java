@@ -2,7 +2,7 @@ package com.plugins.besthyj.bestmastergatherer.listener.collectGui;
 
 import com.plugins.besthyj.bestmastergatherer.BestMasterGatherer;
 import com.plugins.besthyj.bestmastergatherer.constant.CommonConstant;
-import com.plugins.besthyj.bestmastergatherer.manager.attributeGui.PlayerAttribute;
+import com.plugins.besthyj.bestmastergatherer.integration.attribute.PlayerAttribute;
 import com.plugins.besthyj.bestmastergatherer.manager.collectGui.CollectGuiManager;
 import com.plugins.besthyj.bestmastergatherer.util.ColorUtil;
 import com.plugins.besthyj.bestmastergatherer.util.collectGui.PlayerDataStorageUtil;
@@ -158,28 +158,16 @@ public class CollectGuiListener implements Listener {
      */
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
+        InventoryView view = event.getView();
+        String inventoryTitle = view.getTitle();
+
+        if (!guiNames.containsKey(inventoryTitle)) {
+            return;
+        }
+
+        Player player = (Player) event.getPlayer();
+
         if (event.getInventory().getHolder() instanceof PaginatedInventoryHolder) {
-            Player player = (Player) event.getPlayer();
-            Inventory closedInventory = event.getInventory();
-            InventoryView view = event.getView();
-            String inventoryTitle = view.getTitle();
-            String guiId = guiNames.get(inventoryTitle);
-            int page = ((PaginatedInventoryHolder) closedInventory.getHolder()).getCurrentPage();
-
-            // 删除旧文件
-//            PlayerDataStorageUtil playerDataStorageUtil = plugin.getPlayerDataStorageUtil();
-//            playerDataStorageUtil.deleteItemData(player.getName(), page);
-
-//            for (int slot = 0; slot < closedInventory.getSize(); slot++) {
-//                if (playerDataStorageUtil.getFilledSlots(guiId, "collectGUI").contains(slot)) {continue;}
-//                ItemStack item = closedInventory.getItem(slot);
-//                if (item != null) {
-//                    playerDataStorageUtil.saveItemData(player, item, page, slot);
-//                }
-//            }
-//            Bukkit.getLogger().info("[BestMasterGatherer]玩家 " + player.getName() + " 第 " + page + " 页数据保存完毕");
-//            PlayerMessage.sendMessage(player, "&a你的仓库物品已保存！");
-
             PlayerAttribute playerAttribute = plugin.getPlayerAttribute();
             playerAttribute.addAttributeToPlayer(player);
             PlayerMessage.sendMessage(player, CommonConstant.PLUGIN_NAME_PREFIX + "&6你的属性已更新！");

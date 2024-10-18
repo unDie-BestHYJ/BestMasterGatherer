@@ -1,5 +1,5 @@
 name: BestMasterGatherer
-version: '1.1.1-SNAPSHOT'
+version: '1.1.2-SNAPSHOT'
 main: com.plugins.besthyj.bestmastergatherer.BestMasterGatherer
 author: 筠筠
 description: "大师收集系统"

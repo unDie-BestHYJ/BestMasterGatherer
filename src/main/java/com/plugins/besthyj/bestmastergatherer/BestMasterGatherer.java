@@ -4,12 +4,11 @@ import com.plugins.besthyj.bestmastergatherer.commands.BestMasterGathererCommand
 import com.plugins.besthyj.bestmastergatherer.listener.attributeGui.AttributeGuiListener;
 import com.plugins.besthyj.bestmastergatherer.listener.attributeGui.PlayerJoinListener;
 import com.plugins.besthyj.bestmastergatherer.manager.attributeGui.AttributeGuiManager;
-import com.plugins.besthyj.bestmastergatherer.manager.attributeGui.PlayerAttribute;
+import com.plugins.besthyj.bestmastergatherer.integration.attribute.PlayerAttribute;
 import com.plugins.besthyj.bestmastergatherer.manager.collectGui.CollectGuiManager;
 import com.plugins.besthyj.bestmastergatherer.listener.collectGui.CollectGuiListener;
 import com.plugins.besthyj.bestmastergatherer.util.attributeGui.AttributeGuiItemUtil;
 import com.plugins.besthyj.bestmastergatherer.util.collectGui.PlayerDataStorageUtil;
-import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -121,7 +120,6 @@ public class BestMasterGatherer extends JavaPlugin {
         if (!storageFolder.exists()) {
             storageFolder.mkdir();
         }
-//        Bukkit.getLogger().info("文件初始化完成");
     }
 
     private void createFolderAndCopyDefault(File dataFolder, String folderName, String fileName) {

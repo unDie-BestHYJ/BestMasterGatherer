@@ -21,7 +21,6 @@ public class AttributeGuiItem {
 
     private Map<Integer, List<String>> attributesMap;
 
-    // getter and setter
     public String getItemId() {
         return itemId;
     }

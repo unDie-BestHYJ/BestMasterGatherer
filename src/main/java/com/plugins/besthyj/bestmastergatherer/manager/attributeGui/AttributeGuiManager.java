@@ -100,6 +100,7 @@ public class AttributeGuiManager {
                     }
 
                     int count = attributeGuiItemUtil.getCollectedCount(player, attributeItem);
+//                    Bukkit.getLogger().info(attributeItem.getItemName());
                     ItemStack itemStack = attributeGuiItemUtil.createGuiItemFromAttributeItem(attributeItem, count, player);
                     int slot = row * 9 + col;
                     inventory.setItem(slot, itemStack);

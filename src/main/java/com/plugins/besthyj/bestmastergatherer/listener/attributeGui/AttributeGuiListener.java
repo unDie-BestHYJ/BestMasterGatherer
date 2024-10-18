@@ -2,11 +2,9 @@ package com.plugins.besthyj.bestmastergatherer.listener.attributeGui;
 
 import com.plugins.besthyj.bestmastergatherer.BestMasterGatherer;
 import com.plugins.besthyj.bestmastergatherer.constant.CommonConstant;
-import com.plugins.besthyj.bestmastergatherer.manager.attributeGui.PlayerAttribute;
-import com.plugins.besthyj.bestmastergatherer.model.collectGui.PaginatedInventoryHolder;
+import com.plugins.besthyj.bestmastergatherer.integration.attribute.PlayerAttribute;
 import com.plugins.besthyj.bestmastergatherer.util.ColorUtil;
 import com.plugins.besthyj.bestmastergatherer.util.PlayerMessage;
-import com.plugins.besthyj.bestmastergatherer.util.collectGui.PlayerDataStorageUtil;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -16,7 +14,6 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
-import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
 import java.util.HashMap;
@@ -76,15 +73,18 @@ public class AttributeGuiListener implements Listener {
      */
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
-        Player player = (Player) event.getPlayer();
         InventoryView view = event.getView();
         String inventoryTitle = view.getTitle();
-        PlayerAttribute playerAttribute = plugin.getPlayerAttribute();
 
-        if (guiNames.containsKey(inventoryTitle)) {
-            playerAttribute.addAttributeToPlayer(player);
-            PlayerMessage.sendMessage(player, CommonConstant.PLUGIN_NAME_PREFIX + "&6你的属性已更新！");
+        if (!guiNames.containsKey(inventoryTitle)) {
+            return;
         }
+
+        Player player = (Player) event.getPlayer();
+
+        PlayerAttribute playerAttribute = plugin.getPlayerAttribute();
+        playerAttribute.addAttributeToPlayer(player);
+        PlayerMessage.sendMessage(player, CommonConstant.PLUGIN_NAME_PREFIX + "&6你的属性已更新！");
     }
 
     /**

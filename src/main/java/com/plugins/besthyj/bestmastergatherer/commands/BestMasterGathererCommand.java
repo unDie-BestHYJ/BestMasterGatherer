@@ -30,7 +30,6 @@ public class BestMasterGathererCommand implements CommandExecutor {
         }
 
         String subCommand = args[0].toLowerCase();
-//        Bukkit.getLogger().info(subCommand);
         String[] subArgs = Arrays.copyOfRange(args, 1, args.length);
         
         if (subCommand.equalsIgnoreCase("collect")) {
