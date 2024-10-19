@@ -29,8 +29,11 @@ import java.util.concurrent.CompletableFuture;
 public class CollectGuiListener implements Listener {
 
     private final BestMasterGatherer plugin;
-    private final Map<String, String> guiNames = new HashMap<>(); // 保存 GUI 的 ID 和名称映射
+    private final Map<String, String> guiNames = new HashMap<>();
     private final Map<String, List<Integer>> filledSlotsMap = new HashMap<>();
+
+    private Map<Player, Long> lastClickTime = new HashMap<>();
+    private static final long CLICK_INTERVAL = 500;
 
     public CollectGuiListener(BestMasterGatherer plugin) {
         this.plugin = plugin;
@@ -102,6 +105,19 @@ public class CollectGuiListener implements Listener {
         collectGuiManager.handleInventoryClick(event);
 
         if (guiNames.containsKey(inventoryTitle)) {
+
+            long currentTime = System.currentTimeMillis();
+            if (lastClickTime.containsKey(player)) {
+                long lastTime = lastClickTime.get(player);
+                if (currentTime - lastTime < CLICK_INTERVAL) {
+                    PlayerMessage.sendMessage(player, "&c你点击太快了，请稍后再试！");
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+
+            lastClickTime.put(player, currentTime);
+
             if (clickedInventory != null && clickedInventory.equals(view.getTopInventory())) {
                 if (filledSlots.contains(event.getSlot())) {
                     event.setCancelled(true);

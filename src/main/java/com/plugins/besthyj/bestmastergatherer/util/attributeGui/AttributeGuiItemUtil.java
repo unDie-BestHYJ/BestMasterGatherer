@@ -269,4 +269,8 @@ public class AttributeGuiItemUtil {
 
         return collectedDisplaySet;
     }
+
+    public void clearResources() {
+        this.mythicItemCache.clear();
+    }
 }

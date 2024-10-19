@@ -6,7 +6,7 @@ description: "大师收集系统"
 
 # 插件需要的依赖
 depend:
-  - PlaceholderAPI # 如果插件使用了PlaceholderAPI，需要将其标为依赖
+  - PlaceholderAPI
   - AttributePlus
 
 # 插件中提供的命令

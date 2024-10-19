@@ -6,6 +6,7 @@ import com.plugins.besthyj.bestmastergatherer.integration.attribute.attributeplu
 import com.plugins.besthyj.bestmastergatherer.manager.attributeGui.AttributeGuiManager;
 import com.plugins.besthyj.bestmastergatherer.model.attributeGui.AttributeGuiItem;
 import com.plugins.besthyj.bestmastergatherer.util.attributeGui.AttributeGuiItemUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -30,73 +31,52 @@ public class PlayerAttribute {
      * @param player
      * @return
      */
-//    public List<ItemStack> getItemStackList(Player player) {
-//        AttributeGuiManager attributeGuiManager = plugin.getAttributeGuiManager();
-//        Map<String, FileConfiguration> guiConfigs = attributeGuiManager.getGuiConfigs();
-//        AttributeGuiItemUtil attributeGuiItemUtil = plugin.getAttributeGuiItemUtil();
-//
-//        // 使用 CompletableFuture 来异步处理每个 guiId 的操作
-//        List<CompletableFuture<List<ItemStack>>> futures = new ArrayList<>();
-//
-//        for (String guiId : guiConfigs.keySet()) {
-//            CompletableFuture<List<ItemStack>> future = CompletableFuture.supplyAsync(() -> {
-//                List<ItemStack> items = new ArrayList<>();
-//                Map<String, AttributeGuiItem> itemMap = attributeGuiItemUtil.loadItems(CommonConstant.ATTRIBUTE_FOLDER, guiId);
-//
-//                for (AttributeGuiItem attributeGuiItem : itemMap.values()) {
-//                    int count = attributeGuiItemUtil.getCollectedCount(player, attributeGuiItem);
-//                    ItemStack itemStack = attributeGuiItemUtil.getAttributeItemStack(attributeGuiItem, count);
-//                    items.add(itemStack);
-//                }
-//                return items;
-//            });
-//
-//            futures.add(future);
-//        }
-//
-//        // 将所有 CompletableFuture 结果合并
-//        List<ItemStack> allItems = futures.stream()
-//                .map(CompletableFuture::join)  // 等待所有异步任务完成
-//                .flatMap(List::stream)         // 将每个返回的 List<ItemStack> 展开
-//                .collect(Collectors.toList()); // 收集到最终的 List<ItemStack>
-//
-//        return allItems;
-//    }
 
-    public List<ItemStack> getItemStackList(Player player) {
-        List<ItemStack> items = new ArrayList<>();
+    public CompletableFuture<List<ItemStack>> getItemStackListAsync(Player player) {
         AttributeGuiItemUtil attributeGuiItemUtil = plugin.getAttributeGuiItemUtil();
         List<Map<String, AttributeGuiItem>> itemMapLists = new ArrayList<>();
-        loadItems(itemMapLists);
-        for (Map<String, AttributeGuiItem> itemMap: itemMapLists) {
-            for (AttributeGuiItem attributeGuiItem: itemMap.values()) {
-                int count = attributeGuiItemUtil.getCollectedCount(player, attributeGuiItem);
-                ItemStack itemStack = attributeGuiItemUtil.getAttributeItemStack(attributeGuiItem, count);
-                items.add(itemStack);
+
+        return CompletableFuture.supplyAsync(() -> {
+            loadItems(itemMapLists); // 假设这是同步阻塞的
+            return itemMapLists;
+        }).thenApply(itemMapListsResult -> {
+            List<ItemStack> items = new ArrayList<>();
+            for (Map<String, AttributeGuiItem> itemMap : itemMapListsResult) {
+                for (AttributeGuiItem attributeGuiItem : itemMap.values()) {
+                    int count = attributeGuiItemUtil.getCollectedCount(player, attributeGuiItem);
+                    ItemStack itemStack = attributeGuiItemUtil.getAttributeItemStack(attributeGuiItem, count);
+                    items.add(itemStack);
+                }
             }
-        }
-        return items;
+            return items;
+        });
     }
 
     private void loadItems(List<Map<String, AttributeGuiItem>> itemMapLists) {
         AttributeGuiManager attributeGuiManager = plugin.getAttributeGuiManager();
         Map<String, FileConfiguration> guiConfigs = attributeGuiManager.getGuiConfigs();
         AttributeGuiItemUtil attributeGuiItemUtil = plugin.getAttributeGuiItemUtil();
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
         guiConfigs.keySet().forEach(guiId -> {
-            CompletableFuture.supplyAsync(() -> {
-                // 异步加载物品
-                return attributeGuiItemUtil.loadItems(CommonConstant.ATTRIBUTE_FOLDER, guiId);
-            }).thenAccept(itemMap -> {
-                // 回到主线程，添加结果到 itemMapLists
-                synchronized (itemMapLists) {
-                    itemMapLists.add(itemMap);
-                }
+            Map<String, AttributeGuiItem> itemMap = attributeGuiItemUtil.loadItems(CommonConstant.ATTRIBUTE_FOLDER, guiId);
+            itemMapLists.add(itemMap);
+        });
+        if (itemMapLists.isEmpty()) {
+            Bukkit.getLogger().info("itemMapLists is empty");
+        }
+        itemMapLists.forEach(itemMap -> {
+            itemMap.forEach((key, value) -> {
+                Bukkit.getLogger().info("Key: " + key + ", Value: " + value.toString());
             });
         });
     }
 
     public void addAttributeToPlayer(Player player) {
-        List<ItemStack> items = getItemStackList(player);
-        AttributePlusHandler.addAttributesItemStack(player, items);
+        getItemStackListAsync(player).thenAccept(items -> {
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                AttributePlusHandler.addAttributesItemStack(player, items);
+                Bukkit.getLogger().info("玩家属性更新完毕");
+            });
+        });
     }
 }

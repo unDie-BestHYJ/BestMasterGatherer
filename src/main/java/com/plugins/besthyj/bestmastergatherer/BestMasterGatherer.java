@@ -9,10 +9,14 @@ import com.plugins.besthyj.bestmastergatherer.manager.collectGui.CollectGuiManag
 import com.plugins.besthyj.bestmastergatherer.listener.collectGui.CollectGuiListener;
 import com.plugins.besthyj.bestmastergatherer.util.attributeGui.AttributeGuiItemUtil;
 import com.plugins.besthyj.bestmastergatherer.util.collectGui.PlayerDataStorageUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 
 public class BestMasterGatherer extends JavaPlugin {
 
@@ -64,6 +68,8 @@ public class BestMasterGatherer extends JavaPlugin {
         // manager
         collectGuiManager = new CollectGuiManager(this);
         attributeGuiManager = new AttributeGuiManager(this);
+
+        // attribute
         playerAttribute = new PlayerAttribute(this);
 
         // command
@@ -125,12 +131,27 @@ public class BestMasterGatherer extends JavaPlugin {
     private void createFolderAndCopyDefault(File dataFolder, String folderName, String fileName) {
         File folder = new File(dataFolder, folderName);
         if (!folder.exists()) {
-            folder.mkdirs();
+            boolean folderCreated = folder.mkdirs();
+            if (!folderCreated) {
+                Bukkit.getLogger().warning("创建文件夹失败: " + folder.getPath());
+                return;
+            }
         }
 
         File exampleFile = new File(folder, fileName);
+
         if (!exampleFile.exists()) {
-            saveResource(folderName + "/" + fileName, false);
+            try (InputStream inputStream = this.getResource(folderName + "/" + fileName)) {
+                if (inputStream != null) {
+                    Files.copy(inputStream, exampleFile.toPath());
+                    Bukkit.getLogger().info("默认资源已复制到: " + exampleFile.getPath());
+                } else {
+                    Bukkit.getLogger().warning("在 JAR 中未找到资源: " + folderName + "/" + fileName);
+                }
+            } catch (IOException e) {
+                Bukkit.getLogger().severe("复制默认资源到 " + exampleFile.getPath() + " 时失败");
+                e.printStackTrace();
+            }
         }
     }
 
@@ -142,9 +163,12 @@ public class BestMasterGatherer extends JavaPlugin {
         this.getCommand("BestMasterGatherer").setExecutor(null);
         this.getServer().getScheduler().cancelTasks(this);
 
+        attributeGuiItemUtil.clearResources();
+
         collectGuiManager.clearResources();
-        collectGuiListener.clearResources();
         attributeGuiManager.clearResources();
+
+        collectGuiListener.clearResources();
         attributeGuiListener.clearResources();
     }
 }
